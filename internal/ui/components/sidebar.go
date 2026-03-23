@@ -134,6 +134,7 @@ func (s Sidebar) View(width, height int, logo string) string {
 		Width(width).
 		Height(height).
 		Padding(1, 1).
+		Background(theme.Background).
 		Border(lipgloss.NormalBorder(), false, true, false, false).
 		BorderForeground(theme.Border)
 
@@ -196,7 +197,7 @@ func renderItemLine(item SidebarItem, width int, isSelected bool, isCursor bool)
 	lineStyle := lipgloss.NewStyle().Padding(0, 1)
 
 	if isSelected {
-		indicator = lipgloss.NewStyle().Foreground(theme.Red).Render("?")
+		indicator = lipgloss.NewStyle().Foreground(theme.Red).Render(">")
 		textStyle = textStyle.Foreground(theme.TextPrimary)
 		keyStyle = keyStyle.Foreground(theme.TextDim)
 		lineStyle = lineStyle.Background(theme.Surface2)

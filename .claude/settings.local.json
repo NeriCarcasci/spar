@@ -19,7 +19,10 @@
       "Bash(mkdir -p \"d:/SharedDocuments/spar/challenges/graphs/$id/setup\")",
       "Bash(mkdir -p \"d:/SharedDocuments/spar/challenges/graphs/$id/solutions\")",
       "Bash(python3 -c \":*)",
-      "Bash(python -c \":*)"
+      "Bash(python -c \":*)",
+      "Bash(ls d:/SharedDocuments/spar/challenges/linked-lists/*/setup/)",
+      "Bash(ls d:/SharedDocuments/spar/challenges/linked-lists/*/solutions/)",
+      "Bash(find \"d:/SharedDocuments/spar/challenges/linked-lists\" -name \"solution.*\" -delete)"
     ]
   }
 }

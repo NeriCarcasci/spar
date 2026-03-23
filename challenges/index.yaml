@@ -1,0 +1,942 @@
+challenges:
+    - id: contains-duplicate
+      title: Contains Duplicate
+      difficulty: easy
+      category: arrays-and-hashing
+      tags:
+        - hash-set
+        - sorting
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/arrays-and-hashing/contains-duplicate
+    - id: two-sum
+      title: Two Sum
+      difficulty: easy
+      category: arrays-and-hashing
+      tags:
+        - hash-map
+        - brute-force
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/arrays-and-hashing/two-sum
+    - id: valid-anagram
+      title: Valid Anagram
+      difficulty: easy
+      category: arrays-and-hashing
+      tags:
+        - hash-map
+        - sorting
+        - string
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/arrays-and-hashing/valid-anagram
+    - id: encode-decode-strings
+      title: Encode and Decode Strings
+      difficulty: medium
+      category: arrays-and-hashing
+      tags:
+        - string
+        - encoding
+        - design
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/arrays-and-hashing/encode-decode-strings
+    - id: group-anagrams
+      title: Group Anagrams
+      difficulty: medium
+      category: arrays-and-hashing
+      tags:
+        - hash-map
+        - sorting
+        - string
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/arrays-and-hashing/group-anagrams
+    - id: longest-consecutive
+      title: Longest Consecutive Sequence
+      difficulty: medium
+      category: arrays-and-hashing
+      tags:
+        - hash-set
+        - sequence
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/arrays-and-hashing/longest-consecutive
+    - id: product-except-self
+      title: Product of Array Except Self
+      difficulty: medium
+      category: arrays-and-hashing
+      tags:
+        - prefix-product
+        - array
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/arrays-and-hashing/product-except-self
+    - id: top-k-frequent
+      title: Top K Frequent Elements
+      difficulty: medium
+      category: arrays-and-hashing
+      tags:
+        - hash-map
+        - heap
+        - bucket-sort
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/arrays-and-hashing/top-k-frequent
+    - id: valid-sudoku
+      title: Valid Sudoku
+      difficulty: medium
+      category: arrays-and-hashing
+      tags:
+        - hash-set
+        - matrix
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/arrays-and-hashing/valid-sudoku
+    - id: combination-sum
+      title: Combination Sum
+      difficulty: medium
+      category: backtracking
+      tags:
+        - backtracking
+        - recursion
+        - array
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/backtracking/combination-sum
+    - id: permutations
+      title: Permutations
+      difficulty: medium
+      category: backtracking
+      tags:
+        - backtracking
+        - recursion
+        - array
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/backtracking/permutations
+    - id: subsets
+      title: Subsets
+      difficulty: medium
+      category: backtracking
+      tags:
+        - backtracking
+        - bit-manipulation
+        - array
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/backtracking/subsets
+    - id: word-search
+      title: Word Search
+      difficulty: medium
+      category: backtracking
+      tags:
+        - backtracking
+        - matrix
+        - dfs
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/backtracking/word-search
+    - id: n-queens
+      title: N-Queens
+      difficulty: hard
+      category: backtracking
+      tags:
+        - backtracking
+        - recursion
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/backtracking/n-queens
+    - id: binary-search
+      title: Binary Search
+      difficulty: easy
+      category: binary-search
+      tags:
+        - binary-search
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/binary-search/binary-search
+    - id: find-min-rotated
+      title: Find Minimum in Rotated Sorted Array
+      difficulty: medium
+      category: binary-search
+      tags:
+        - binary-search
+        - array
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/binary-search/find-min-rotated
+    - id: koko-bananas
+      title: Koko Eating Bananas
+      difficulty: medium
+      category: binary-search
+      tags:
+        - binary-search
+        - greedy
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/binary-search/koko-bananas
+    - id: search-rotated
+      title: Search in Rotated Sorted Array
+      difficulty: medium
+      category: binary-search
+      tags:
+        - binary-search
+        - array
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/binary-search/search-rotated
+    - id: median-two-sorted
+      title: Median of Two Sorted Arrays
+      difficulty: hard
+      category: binary-search
+      tags:
+        - binary-search
+        - divide-and-conquer
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/binary-search/median-two-sorted
+    - id: clone-graph
+      title: Clone Graph
+      difficulty: medium
+      category: graphs
+      tags:
+        - bfs
+        - dfs
+        - hash-map
+        - graph
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/graphs/clone-graph
+    - id: course-schedule
+      title: Course Schedule
+      difficulty: medium
+      category: graphs
+      tags:
+        - topological-sort
+        - bfs
+        - dfs
+        - cycle-detection
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/graphs/course-schedule
+    - id: graph-valid-tree
+      title: Graph Valid Tree
+      difficulty: medium
+      category: graphs
+      tags:
+        - union-find
+        - bfs
+        - dfs
+        - tree
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/graphs/graph-valid-tree
+    - id: num-connected-components
+      title: Number of Connected Components in an Undirected Graph
+      difficulty: medium
+      category: graphs
+      tags:
+        - union-find
+        - bfs
+        - dfs
+        - connected-components
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/graphs/num-connected-components
+    - id: num-islands
+      title: Number of Islands
+      difficulty: medium
+      category: graphs
+      tags:
+        - bfs
+        - dfs
+        - matrix
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/graphs/num-islands
+    - id: pacific-atlantic
+      title: Pacific Atlantic Water Flow
+      difficulty: medium
+      category: graphs
+      tags:
+        - bfs
+        - dfs
+        - matrix
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/graphs/pacific-atlantic
+    - id: alien-dictionary
+      title: Alien Dictionary
+      difficulty: hard
+      category: graphs
+      tags:
+        - topological-sort
+        - bfs
+        - graph
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/graphs/alien-dictionary
+    - id: kth-largest-stream
+      title: Kth Largest Element in a Stream
+      difficulty: easy
+      category: heap
+      tags:
+        - heap
+        - design
+        - priority-queue
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/heap/kth-largest-stream
+    - id: merge-k-sorted-alt
+      title: K Closest Points to Origin
+      difficulty: medium
+      category: heap
+      tags:
+        - heap
+        - sorting
+        - math
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/heap/merge-k-sorted-alt
+    - id: task-scheduler
+      title: Task Scheduler
+      difficulty: medium
+      category: heap
+      tags:
+        - heap
+        - greedy
+        - hash-map
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/heap/task-scheduler
+    - id: find-median-stream
+      title: Find Median from Data Stream
+      difficulty: hard
+      category: heap
+      tags:
+        - heap
+        - design
+        - two-heaps
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/heap/find-median-stream
+    - id: linked-list-cycle
+      title: Linked List Cycle
+      difficulty: easy
+      category: linked-lists
+      tags:
+        - linked-list
+        - two-pointers
+        - cycle-detection
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/linked-lists/linked-list-cycle
+    - id: merge-two-sorted
+      title: Merge Two Sorted Lists
+      difficulty: easy
+      category: linked-lists
+      tags:
+        - linked-list
+        - recursion
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/linked-lists/merge-two-sorted
+    - id: reverse-linked-list
+      title: Reverse Linked List
+      difficulty: easy
+      category: linked-lists
+      tags:
+        - linked-list
+        - recursion
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/linked-lists/reverse-linked-list
+    - id: remove-nth-from-end
+      title: Remove Nth Node From End
+      difficulty: medium
+      category: linked-lists
+      tags:
+        - linked-list
+        - two-pointers
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/linked-lists/remove-nth-from-end
+    - id: reorder-list
+      title: Reorder List
+      difficulty: medium
+      category: linked-lists
+      tags:
+        - linked-list
+        - two-pointers
+        - stack
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/linked-lists/reorder-list
+    - id: merge-k-sorted
+      title: Merge K Sorted Lists
+      difficulty: hard
+      category: linked-lists
+      tags:
+        - linked-list
+        - heap
+        - divide-and-conquer
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/linked-lists/merge-k-sorted
+    - id: best-buy-sell-stock
+      title: Best Time to Buy and Sell Stock
+      difficulty: easy
+      category: sliding-window
+      tags:
+        - sliding-window
+        - greedy
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/sliding-window/best-buy-sell-stock
+    - id: longest-repeating-replace
+      title: Longest Repeating Character Replacement
+      difficulty: medium
+      category: sliding-window
+      tags:
+        - sliding-window
+        - string
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/sliding-window/longest-repeating-replace
+    - id: longest-no-repeat
+      title: Longest Substring Without Repeating Characters
+      difficulty: medium
+      category: sliding-window
+      tags:
+        - sliding-window
+        - hash-set
+        - string
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/sliding-window/longest-no-repeat
+    - id: minimum-window-sub
+      title: Minimum Window Substring
+      difficulty: hard
+      category: sliding-window
+      tags:
+        - sliding-window
+        - hash-map
+        - string
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/sliding-window/minimum-window-sub
+    - id: sliding-window-max
+      title: Sliding Window Maximum
+      difficulty: hard
+      category: sliding-window
+      tags:
+        - sliding-window
+        - deque
+        - monotonic-queue
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/sliding-window/sliding-window-max
+    - id: valid-parentheses
+      title: Valid Parentheses
+      difficulty: easy
+      category: stack
+      tags:
+        - stack
+        - string
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/stack/valid-parentheses
+    - id: daily-temperatures
+      title: Daily Temperatures
+      difficulty: medium
+      category: stack
+      tags:
+        - stack
+        - monotonic-stack
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/stack/daily-temperatures
+    - id: reverse-polish
+      title: Evaluate Reverse Polish Notation
+      difficulty: medium
+      category: stack
+      tags:
+        - stack
+        - math
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/stack/reverse-polish
+    - id: min-stack
+      title: Min Stack
+      difficulty: medium
+      category: stack
+      tags:
+        - stack
+        - design
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/stack/min-stack
+    - id: largest-rect-histogram
+      title: Largest Rectangle in Histogram
+      difficulty: hard
+      category: stack
+      tags:
+        - stack
+        - monotonic-stack
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/stack/largest-rect-histogram
+    - id: invert-binary-tree
+      title: Invert Binary Tree
+      difficulty: easy
+      category: trees
+      tags:
+        - binary-tree
+        - recursion
+        - dfs
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/trees/invert-binary-tree
+    - id: max-depth-tree
+      title: Maximum Depth of Binary Tree
+      difficulty: easy
+      category: trees
+      tags:
+        - binary-tree
+        - recursion
+        - dfs
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/trees/max-depth-tree
+    - id: same-tree
+      title: Same Tree
+      difficulty: easy
+      category: trees
+      tags:
+        - binary-tree
+        - recursion
+        - dfs
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/trees/same-tree
+    - id: subtree-of-another
+      title: Subtree of Another Tree
+      difficulty: easy
+      category: trees
+      tags:
+        - binary-tree
+        - recursion
+        - dfs
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/trees/subtree-of-another
+    - id: level-order-traversal
+      title: Binary Tree Level Order Traversal
+      difficulty: medium
+      category: trees
+      tags:
+        - binary-tree
+        - bfs
+        - queue
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/trees/level-order-traversal
+    - id: build-tree-preorder
+      title: Construct Binary Tree from Preorder and Inorder Traversal
+      difficulty: medium
+      category: trees
+      tags:
+        - binary-tree
+        - recursion
+        - divide-and-conquer
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/trees/build-tree-preorder
+    - id: kth-smallest-bst
+      title: Kth Smallest Element in a BST
+      difficulty: medium
+      category: trees
+      tags:
+        - binary-search-tree
+        - in-order-traversal
+        - dfs
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/trees/kth-smallest-bst
+    - id: lowest-common-ancestor
+      title: Lowest Common Ancestor of a BST
+      difficulty: medium
+      category: trees
+      tags:
+        - binary-search-tree
+        - recursion
+        - dfs
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/trees/lowest-common-ancestor
+    - id: validate-bst
+      title: Validate Binary Search Tree
+      difficulty: medium
+      category: trees
+      tags:
+        - binary-search-tree
+        - recursion
+        - dfs
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/trees/validate-bst
+    - id: binary-tree-max-path
+      title: Binary Tree Maximum Path Sum
+      difficulty: hard
+      category: trees
+      tags:
+        - binary-tree
+        - recursion
+        - dfs
+        - dynamic-programming
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/trees/binary-tree-max-path
+    - id: serialize-deserialize
+      title: Serialize and Deserialize Binary Tree
+      difficulty: hard
+      category: trees
+      tags:
+        - binary-tree
+        - design
+        - dfs
+        - bfs
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/trees/serialize-deserialize
+    - id: implement-trie
+      title: Implement Trie (Prefix Tree)
+      difficulty: medium
+      category: tries
+      tags:
+        - trie
+        - design
+        - string
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/tries/implement-trie
+    - id: word-search-ii
+      title: Word Search II
+      difficulty: hard
+      category: tries
+      tags:
+        - trie
+        - backtracking
+        - matrix
+        - dfs
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/tries/word-search-ii
+    - id: valid-palindrome
+      title: Valid Palindrome
+      difficulty: easy
+      category: two-pointers
+      tags:
+        - two-pointers
+        - string
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/two-pointers/valid-palindrome
+    - id: container-with-water
+      title: Container With Most Water
+      difficulty: medium
+      category: two-pointers
+      tags:
+        - two-pointers
+        - greedy
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/two-pointers/container-with-water
+    - id: three-sum
+      title: Three Sum
+      difficulty: medium
+      category: two-pointers
+      tags:
+        - two-pointers
+        - sorting
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/two-pointers/three-sum
+    - id: two-sum-sorted
+      title: Two Sum II (Sorted Input)
+      difficulty: medium
+      category: two-pointers
+      tags:
+        - two-pointers
+        - binary-search
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/two-pointers/two-sum-sorted
+    - id: trapping-rain-water
+      title: Trapping Rain Water
+      difficulty: hard
+      category: two-pointers
+      tags:
+        - two-pointers
+        - stack
+        - dynamic-programming
+      languages:
+        - python
+        - go
+        - javascript
+        - cpp
+        - rust
+      path: challenges/two-pointers/trapping-rain-water

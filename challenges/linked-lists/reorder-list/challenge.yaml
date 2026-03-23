@@ -1,28 +1,16 @@
 id: reorder-list
-title: "Reorder List"
-difficulty: medium
-category: linked-lists
+title: Reorder List
 collection: the-foundation
-tags: [linked-list, two-pointers, stack]
+category: linked-lists
+difficulty: medium
 languages: [python, go, javascript, cpp, rust]
 description: |
-  You are given the head of a singly linked list:
-  `L0 → L1 → … → Ln-1 → Ln`
-
-  Reorder it to:
-  `L0 → Ln → L1 → Ln-1 → L2 → Ln-2 → …`
-
-  You may not modify the values in the list's nodes — only the nodes themselves
-  may be changed.
-examples:
-  - input: "head = [1,2,3,4]"
-    output: "[1,4,2,3]"
-  - input: "head = [1,2,3,4,5]"
-    output: "[1,5,2,4,3]"
-constraints:
-  - "The number of nodes is in the range [1, 5 * 10^4]"
-  - "1 <= Node.val <= 1000"
-time_limit_seconds: 30
+  You are given the head of a singly linked-list: L0 → L1 → … → Ln-1 → Ln.
+  Reorder it to: L0 → Ln → L1 → Ln-1 → L2 → Ln-2 → …
+  You may not modify the values in the list's nodes. Only nodes themselves may be changed.
+constraints: |
+  - The number of nodes in the list is in the range [1, 5 * 10^4].
+  - 1 <= Node.val <= 1000
 hints:
-  - "Find the middle of the list, reverse the second half, then merge alternately."
-  - "This combines three fundamental linked list operations."
+  - Find the middle, reverse the second half, then merge the two halves.
+  - Use slow/fast pointers to find the middle.

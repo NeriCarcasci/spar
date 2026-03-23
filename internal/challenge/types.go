@@ -11,10 +11,13 @@ const (
 type Challenge struct {
 	ID               string     `yaml:"id"`
 	Title            string     `yaml:"title"`
+	Collection       string     `yaml:"collection"`
 	Difficulty       Difficulty `yaml:"difficulty"`
 	Category         string     `yaml:"category"`
 	Tags             []string   `yaml:"tags"`
 	Languages        []string   `yaml:"languages"`
+	InputType        string     `yaml:"input_type"`
+	OutputType       string     `yaml:"output_type"`
 	Description      string     `yaml:"description"`
 	Examples         []Example  `yaml:"examples"`
 	Constraints      []string   `yaml:"constraints"`

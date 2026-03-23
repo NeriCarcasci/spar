@@ -1,22 +1,16 @@
 id: reverse-linked-list
-title: "Reverse Linked List"
-difficulty: easy
-category: linked-lists
+title: Reverse Linked List
 collection: the-foundation
-tags: [linked-list, recursion]
+category: linked-lists
+difficulty: easy
 languages: [python, go, javascript, cpp, rust]
+input_type: linked-list
+output_type: linked-list
 description: |
-  Given the head of a singly linked list, reverse the list and return the
-  reversed list.
-examples:
-  - input: "head = [1,2,3,4,5]"
-    output: "[5,4,3,2,1]"
-  - input: "head = [1,2]"
-    output: "[2,1]"
+  Given the head of a singly linked list, reverse the list and return the reversed list.
 constraints:
-  - "The number of nodes is in the range [0, 5000]"
+  - "The number of nodes in the list is in the range [0, 5000]."
   - "-5000 <= Node.val <= 5000"
-time_limit_seconds: 30
 hints:
-  - "Maintain a previous pointer and reverse each node's next pointer."
-  - "What would a recursive approach look like?"
+  - "Think about iteratively reassigning next pointers."
+  - "You need three pointers: prev, curr, next."

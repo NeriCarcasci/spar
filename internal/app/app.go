@@ -1,6 +1,10 @@
 package app
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spar-cli/spar/internal/challenge"
 	"github.com/spar-cli/spar/internal/config"
@@ -41,8 +45,9 @@ type Model struct {
 }
 
 type loadingDoneMsg struct {
-	index   *challenge.Index
-	profile *profile.Profile
+	index    *challenge.Index
+	profile  *profile.Profile
+	repoPath string
 }
 
 type syncCompleteMsg struct {
@@ -83,6 +88,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case loadingDoneMsg:
 		m.index = msg.index
 		m.profile = msg.profile
+		if msg.repoPath != "" {
+			m.config.RepoPath = msg.repoPath
+		}
 		m.dashboard = dashboard.New(m.profile, m.index, m.config)
 		m.browser = browser.New(m.index, m.profile)
 		m.profileV = profileview.New(m.profile)
@@ -240,9 +248,10 @@ func loadData(cfg config.Config) tea.Cmd {
 	return func() tea.Msg {
 		var idx *challenge.Index
 		var prof *profile.Profile
+		repoPath := resolveRepoPath(cfg.RepoPath)
 
-		if cfg.RepoPath != "" {
-			loaded, err := challenge.LoadIndex(cfg.RepoPath)
+		if repoPath != "" {
+			loaded, err := challenge.LoadIndex(repoPath)
 			if err == nil {
 				idx = loaded
 			}
@@ -259,7 +268,7 @@ func loadData(cfg config.Config) tea.Cmd {
 			prof = &profile.Profile{}
 		}
 
-		return loadingDoneMsg{index: idx, profile: prof}
+		return loadingDoneMsg{index: idx, profile: prof, repoPath: repoPath}
 	}
 }
 
@@ -275,4 +284,22 @@ func reloadIndex(repoPath string) tea.Cmd {
 		}
 		return reloadedIndexMsg{index: idx}
 	}
+}
+
+func resolveRepoPath(configPath string) string {
+	if strings.TrimSpace(configPath) != "" {
+		return configPath
+	}
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+
+	indexPath := filepath.Join(wd, "challenges", "index.yaml")
+	if _, err := os.Stat(indexPath); err == nil {
+		return wd
+	}
+
+	return ""
 }

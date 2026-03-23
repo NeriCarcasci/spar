@@ -263,8 +263,12 @@ func (m Model) View() string {
 	sideW := m.sidebarWidth()
 	contentW := max(1, m.width-sideW)
 
-	side := m.sidebar.View(max(8, sideW-1), bodyH, sidebarLogo)
-	content := m.renderContent(contentW, bodyH)
+	side := lipgloss.NewStyle().Background(theme.Background).Render(
+		m.sidebar.View(max(8, sideW-1), bodyH, sidebarLogo),
+	)
+	content := lipgloss.NewStyle().Background(theme.Background).Render(
+		m.renderContent(contentW, bodyH),
+	)
 	status := m.statusBar.WithWidth(m.width).WithMode(m.mode()).WithHints(m.hints()).View()
 
 	full := lipgloss.JoinVertical(lipgloss.Left,
@@ -284,7 +288,12 @@ func (m Model) renderContent(width, height int) string {
 	if free > 0 {
 		main += "\n" + m.renderArt(innerW, free)
 	}
-	return lipgloss.NewStyle().Width(width).Height(height).Padding(1, 2).Render(main)
+	return lipgloss.NewStyle().
+		Width(width).
+		Height(height).
+		Padding(1, 2).
+		Background(theme.Background).
+		Render(main)
 }
 
 func (m Model) renderView(width, height int) string {
@@ -457,7 +466,7 @@ func (m Model) renderArt(width, height int) string {
 		}
 		lines[y] = b.String()
 	}
-	return lipgloss.NewStyle().Foreground(theme.Surface2).Render(strings.Join(lines, "\n"))
+	return lipgloss.NewStyle().Foreground(theme.Surface).Render(strings.Join(lines, "\n"))
 }
 
 func (m *Model) refreshCollections() {

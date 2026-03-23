@@ -1,16 +1,14 @@
-tests:
-  - input: { head: [1, 2, 3, 4, 5], n: 2 }
-    expected: [1, 2, 3, 5]
-    visible: true
-  - input: { head: [1], n: 1 }
+visible:
+  - input: {list: [1,2,3,4,5], n: 2}
+    expected: [1,2,3,5]
+  - input: {list: [1], n: 1}
     expected: []
-    visible: true
-  - input: { head: [1, 2], n: 1 }
+  - input: {list: [1,2], n: 1}
     expected: [1]
-    visible: false
-  - input: { head: [1, 2], n: 2 }
+hidden:
+  - input: {list: [1,2], n: 2}
     expected: [2]
-    visible: false
-  - input: { head: [1, 2, 3], n: 3 }
-    expected: [2, 3]
-    visible: false
+  - input: {list: [1,2,3], n: 3}
+    expected: [2,3]
+  - input: {list: [1,2,3,4,5], n: 5}
+    expected: [2,3,4,5]

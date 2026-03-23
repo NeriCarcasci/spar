@@ -1,21 +1,14 @@
-tests:
-  - input:
-      head: [1, 2, 3, 4, 5]
+visible:
+  - input: [1, 2, 3, 4, 5]
     expected: [5, 4, 3, 2, 1]
-    visible: true
-  - input:
-      head: [1, 2]
+  - input: [1, 2]
     expected: [2, 1]
-    visible: true
-  - input:
-      head: []
+  - input: []
     expected: []
-    visible: false
-  - input:
-      head: [1]
+hidden:
+  - input: [1]
     expected: [1]
-    visible: false
-  - input:
-      head: [1, 2, 3]
+  - input: [1, 2, 3]
     expected: [3, 2, 1]
-    visible: false
+  - input: [5, 4, 3, 2, 1]
+    expected: [1, 2, 3, 4, 5]

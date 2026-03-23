@@ -54,7 +54,7 @@ func setupFilename(language string) string {
 	case "python":
 		return "python.py"
 	case "go":
-		return "solution.go"
+		return "go.go"
 	case "javascript":
 		return "javascript.js"
 	case "cpp":

@@ -1,29 +1,17 @@
 id: linked-list-cycle
-title: "Linked List Cycle"
-difficulty: easy
-category: linked-lists
+title: Linked List Cycle
 collection: the-foundation
-tags: [linked-list, two-pointers, cycle-detection]
+category: linked-lists
+difficulty: easy
 languages: [python, go, javascript, cpp, rust]
 description: |
-  Given the `head` of a linked list, determine if the linked list has a cycle.
-
-  A cycle exists if some node in the list can be reached again by continuously
-  following the `next` pointer. The `pos` parameter indicates the index where
-  the tail connects to (0-indexed). If `pos` is -1, there is no cycle.
-
-  Return `true` if there is a cycle, `false` otherwise.
-examples:
-  - input: "head = [3,2,0,-4], pos = 1"
-    output: "true"
-    explanation: "The tail connects to the node at index 1"
-  - input: "head = [1], pos = -1"
-    output: "false"
-constraints:
-  - "The number of nodes is in the range [0, 10^4]"
-  - "-10^5 <= Node.val <= 10^5"
-  - "pos is -1 or a valid index"
-time_limit_seconds: 30
+  Given head, the head of a linked list, determine if the linked list has a cycle in it.
+  There is a cycle in a linked list if there is some node in the list that can be reached
+  again by continuously following the next pointer.
+  Return true if there is a cycle in the linked list. Otherwise, return false.
+constraints: |
+  - The number of the nodes in the list is in the range [0, 10^4].
+  - -10^5 <= Node.val <= 10^5
 hints:
-  - "Use Floyd's cycle detection: a slow and fast pointer."
-  - "If they meet, there's a cycle."
+  - Use Floyd's cycle detection algorithm (slow and fast pointers).
+  - If fast ever equals slow, there is a cycle.
