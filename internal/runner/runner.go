@@ -2,6 +2,7 @@ package runner
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -86,7 +87,11 @@ func ParseResults(stdout string) []TestResult {
 func execute(tmpDir, solutionPath, testsPath, challengePath, language string, spec languageSpec) (string, string, error, string, string) {
 	switch language {
 	case "python":
-		return runCmd(tmpDir, "python3", spec.BuilderFile, solutionPath, testsPath, challengePath)
+		stdout, stderr, runErr, compileErr, runtimeErr := runCmd(tmpDir, "python3", spec.BuilderFile, solutionPath, testsPath, challengePath)
+		if runErr != nil && isCommandMissing(runErr) {
+			return runCmd(tmpDir, "python", spec.BuilderFile, solutionPath, testsPath, challengePath)
+		}
+		return stdout, stderr, runErr, compileErr, runtimeErr
 	case "go":
 		return runCmd(tmpDir, "go", "run", spec.BuilderFile, spec.SolutionFile, testsPath, challengePath)
 	case "javascript":
@@ -120,6 +125,11 @@ func runCmd(dir, name string, args ...string) (string, string, error, string, st
 	cmd.Stderr = &stderr
 	err := cmd.Run()
 	return stdout.String(), stderr.String(), err, "", ""
+}
+
+func isCommandMissing(err error) bool {
+	var execErr *exec.Error
+	return errors.As(err, &execErr) && errors.Is(execErr, exec.ErrNotFound)
 }
 
 func classifyFailure(language string, results []TestResult, stdout, stderr, compileErr, runtimeErr string) (string, string) {
