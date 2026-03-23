@@ -1,0 +1,29 @@
+id: min-stack
+title: "Min Stack"
+difficulty: medium
+category: stack
+collection: the-foundation
+tags: [stack, design]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Design a stack that supports push, pop, top, and retrieving the minimum
+  element in constant time.
+
+  Implement the following operations:
+  - `push(val)` — Push the element val onto the stack.
+  - `pop()` — Remove the element on the top of the stack.
+  - `top()` — Get the top element of the stack.
+  - `get_min()` — Retrieve the minimum element in the stack.
+
+  Each function must run in O(1) time.
+examples:
+  - input: "push(-2), push(0), push(-3), getMin(), pop(), top(), getMin()"
+    output: "getMin() returns -3, top() returns 0, getMin() returns -2"
+constraints:
+  - "-2^31 <= val <= 2^31 - 1"
+  - "Methods pop, top and getMin will always be called on non-empty stacks"
+  - "At most 3 * 10^4 calls will be made to push, pop, top, and getMin"
+time_limit_seconds: 30
+hints:
+  - "Store the minimum alongside each element in the stack."
+  - "Each entry can be a pair: (value, current_minimum)."

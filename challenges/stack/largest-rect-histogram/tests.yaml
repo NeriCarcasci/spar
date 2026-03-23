@@ -1,0 +1,29 @@
+tests:
+  - input:
+      heights: [2, 1, 5, 6, 2, 3]
+    expected: 10
+    visible: true
+  - input:
+      heights: [2, 4]
+    expected: 4
+    visible: true
+  - input:
+      heights: [1]
+    expected: 1
+    visible: false
+  - input:
+      heights: [0]
+    expected: 0
+    visible: false
+  - input:
+      heights: [3, 3, 3, 3]
+    expected: 12
+    visible: false
+  - input:
+      heights: [1, 2, 3, 4, 5]
+    expected: 9
+    visible: false
+  - input:
+      heights: [5, 4, 3, 2, 1]
+    expected: 9
+    visible: false

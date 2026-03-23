@@ -1,0 +1,31 @@
+id: kth-largest-stream
+title: "Kth Largest Element in a Stream"
+difficulty: easy
+category: heap
+collection: the-foundation
+tags: [heap, design, priority-queue]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Design a class to find the `k`th largest element in a stream.
+
+  Implement the following:
+  - Constructor takes an integer `k` and an integer array `nums`.
+  - `add(val)` — Appends the integer `val` to the stream and returns the
+    element representing the `k`th largest element in the stream.
+
+  Note that it is the `k`th largest element in the sorted order, not the
+  `k`th distinct element.
+examples:
+  - input: "k = 3, nums = [4, 5, 8, 2], add(3), add(5), add(10), add(9), add(4)"
+    output: "4, 5, 5, 8, 8"
+constraints:
+  - "1 <= k <= 10^4"
+  - "0 <= nums.length <= 10^4"
+  - "-10^4 <= nums[i] <= 10^4"
+  - "-10^4 <= val <= 10^4"
+  - "At most 10^4 calls will be made to add"
+  - "It is guaranteed that there will be at least k elements when you search for the kth element"
+time_limit_seconds: 30
+hints:
+  - "A min-heap of size k always has the kth largest at the top."
+  - "When the heap exceeds size k, remove the smallest element."

@@ -1,0 +1,23 @@
+id: longest-no-repeat
+title: "Longest Substring Without Repeating Characters"
+difficulty: medium
+category: sliding-window
+collection: the-foundation
+tags: [sliding-window, hash-set, string]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given a string `s`, find the length of the longest substring without
+  repeating characters.
+examples:
+  - input: "s = \"abcabcbb\""
+    output: "3"
+    explanation: "The answer is \"abc\" with length 3"
+  - input: "s = \"bbbbb\""
+    output: "1"
+constraints:
+  - "0 <= s.length <= 5 * 10^4"
+  - "s consists of English letters, digits, symbols and spaces"
+time_limit_seconds: 30
+hints:
+  - "Maintain a sliding window and track which characters are inside it."
+  - "When you find a duplicate, shrink the window from the left."

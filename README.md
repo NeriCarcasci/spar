@@ -1,7 +1,5 @@
 ```
-╭──╮╭──╮╭──╮╭──╮
-╰─╮│╰──╯├──┤├─╮│
-╰──╯╵   ╵  ╵╵ ╰╯
+v
 ```
 
 **terminal-native coding challenges with an AI interviewer**
@@ -11,7 +9,7 @@
 ## Install
 
 ```bash
-go install github.com/spar-cli/spar@latest
+go install github.com/spar/spar@latest
 ```
 
 ## What is spar?

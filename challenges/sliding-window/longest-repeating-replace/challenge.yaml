@@ -1,0 +1,28 @@
+id: longest-repeating-replace
+title: "Longest Repeating Character Replacement"
+difficulty: medium
+category: sliding-window
+collection: the-foundation
+tags: [sliding-window, string]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  You are given a string `s` and an integer `k`. You can choose any character
+  in the string and change it to any other uppercase English letter. You can
+  perform this operation at most `k` times.
+
+  Return the length of the longest substring containing the same letter you can
+  get after performing the above operations.
+examples:
+  - input: "s = \"ABAB\", k = 2"
+    output: "4"
+    explanation: "Replace both A's with B's or both B's with A's"
+  - input: "s = \"AABABBA\", k = 1"
+    output: "4"
+constraints:
+  - "1 <= s.length <= 10^5"
+  - "s consists of only uppercase English letters"
+  - "0 <= k <= s.length"
+time_limit_seconds: 30
+hints:
+  - "Use a sliding window. The window is valid if (window size - count of most frequent char) <= k."
+  - "You don't need to decrease the max frequency count when shrinking — why?"

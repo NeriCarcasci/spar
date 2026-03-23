@@ -83,7 +83,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case loadingDoneMsg:
 		m.index = msg.index
 		m.profile = msg.profile
-		m.dashboard = dashboard.New(m.profile, m.index)
+		m.dashboard = dashboard.New(m.profile, m.index, m.config)
 		m.browser = browser.New(m.index, m.profile)
 		m.profileV = profileview.New(m.profile)
 		m = m.propagateSize()
@@ -101,7 +101,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.index != nil {
 			m.index = msg.index
 			m.browser = browser.New(m.index, m.profile)
-			m.dashboard = dashboard.New(m.profile, m.index)
+			m.dashboard = dashboard.New(m.profile, m.index, m.config)
 			m = m.propagateSize()
 		}
 	}
@@ -152,18 +152,18 @@ func (m Model) updateSplash(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) updateDashboard(msg tea.Msg) (Model, tea.Cmd) {
-	switch msg.(type) {
-	case dashboard.NavigateBrowserMsg:
-		m.currentView = BrowserView
-		return m, nil
-	case tea.KeyMsg:
-		if msg.(tea.KeyMsg).String() == "q" {
-			return m, tea.Quit
-		}
-		if msg.(tea.KeyMsg).String() == "p" {
-			m.currentView = ProfileView
+	switch msg := msg.(type) {
+	case dashboard.SelectChallengeMsg:
+		ch, err := challenge.LoadChallenge(m.config.RepoPath, msg.Entry)
+		if err != nil {
 			return m, nil
 		}
+		m.session = session.New(ch, m.config.PreferredLanguage).SetSize(m.width, m.height)
+		m.currentView = SessionView
+		return m, nil
+	case dashboard.ConfigChangedMsg:
+		m.config = msg.Config
+		return m, nil
 	}
 
 	dashModel, cmd := m.dashboard.Update(msg)
@@ -196,10 +196,14 @@ func (m Model) updateBrowser(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) updateSession(msg tea.Msg) (Model, tea.Cmd) {
-	switch msg.(type) {
+	switch msg := msg.(type) {
 	case session.NavigateBrowserMsg:
-		m.currentView = BrowserView
+		m.currentView = DashboardView
 		return m, nil
+	case tea.KeyMsg:
+		if msg.String() == "q" {
+			return m, tea.Quit
+		}
 	}
 
 	sessionModel, cmd := m.session.Update(msg)

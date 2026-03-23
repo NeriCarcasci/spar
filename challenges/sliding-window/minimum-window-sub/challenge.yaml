@@ -1,0 +1,26 @@
+id: minimum-window-sub
+title: "Minimum Window Substring"
+difficulty: hard
+category: sliding-window
+collection: the-foundation
+tags: [sliding-window, hash-map, string]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given two strings `s` and `t`, return the minimum window substring of `s`
+  such that every character in `t` (including duplicates) is included in the window.
+
+  If there is no such substring, return the empty string `""`.
+examples:
+  - input: "s = \"ADOBECODEBANC\", t = \"ABC\""
+    output: "\"BANC\""
+  - input: "s = \"a\", t = \"a\""
+    output: "\"a\""
+  - input: "s = \"a\", t = \"aa\""
+    output: "\"\""
+constraints:
+  - "1 <= s.length, t.length <= 10^5"
+  - "s and t consist of uppercase and lowercase English letters"
+time_limit_seconds: 30
+hints:
+  - "Use a sliding window with character frequency counts."
+  - "Expand the right end until you have all characters, then shrink from the left."

@@ -1,0 +1,33 @@
+id: lowest-common-ancestor
+title: "Lowest Common Ancestor of a BST"
+difficulty: medium
+category: trees
+collection: the-foundation
+tags: [binary-search-tree, recursion, dfs]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given a binary search tree (BST), find the lowest common ancestor (LCA)
+  node of two given nodes in the BST.
+
+  The lowest common ancestor is defined as the lowest node in the tree that
+  has both `p` and `q` as descendants (where we allow a node to be a
+  descendant of itself).
+
+  All node values are unique and both `p` and `q` exist in the BST.
+examples:
+  - input: "root = [6,2,8,0,4,7,9,null,null,3,5], p = 2, q = 8"
+    output: "6"
+    explanation: "The LCA of nodes 2 and 8 is 6"
+  - input: "root = [6,2,8,0,4,7,9,null,null,3,5], p = 2, q = 4"
+    output: "2"
+    explanation: "A node can be a descendant of itself"
+constraints:
+  - "The number of nodes is in the range [2, 10^5]"
+  - "-10^9 <= Node.val <= 10^9"
+  - "All node values are unique"
+  - "p != q"
+  - "p and q exist in the BST"
+time_limit_seconds: 30
+hints:
+  - "Use the BST property: left subtree values < node < right subtree values."
+  - "If both p and q are smaller than current node, the LCA must be in the left subtree."

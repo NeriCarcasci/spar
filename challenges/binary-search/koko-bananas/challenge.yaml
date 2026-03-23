@@ -1,0 +1,30 @@
+id: koko-bananas
+title: "Koko Eating Bananas"
+difficulty: medium
+category: binary-search
+collection: the-foundation
+tags: [binary-search, greedy]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Koko loves bananas. There are `n` piles of bananas, where the `i`th pile has
+  `piles[i]` bananas. The guards have gone and will come back in `h` hours.
+
+  Koko can decide her eating speed `k` (bananas per hour). Each hour, she
+  chooses a pile and eats `k` bananas from it. If the pile has fewer than `k`
+  bananas, she eats the whole pile and waits the rest of the hour.
+
+  Return the minimum integer `k` such that she can eat all the bananas within
+  `h` hours.
+examples:
+  - input: "piles = [3,6,7,11], h = 8"
+    output: "4"
+  - input: "piles = [30,11,23,4,20], h = 5"
+    output: "30"
+constraints:
+  - "1 <= piles.length <= 10^4"
+  - "piles.length <= h <= 10^9"
+  - "1 <= piles[i] <= 10^9"
+time_limit_seconds: 30
+hints:
+  - "Binary search on the eating speed k."
+  - "For a given k, calculate total hours needed using ceil(pile / k) for each pile."

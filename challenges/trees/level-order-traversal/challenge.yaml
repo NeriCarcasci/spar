@@ -1,0 +1,25 @@
+id: level-order-traversal
+title: "Binary Tree Level Order Traversal"
+difficulty: medium
+category: trees
+collection: the-foundation
+tags: [binary-tree, bfs, queue]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given the root of a binary tree, return the level order traversal of its
+  nodes' values (i.e., from left to right, level by level).
+
+  Return the result as a list of lists, where each inner list contains the
+  values of nodes at that level.
+examples:
+  - input: "root = [3,9,20,null,null,15,7]"
+    output: "[[3],[9,20],[15,7]]"
+  - input: "root = [1]"
+    output: "[[1]]"
+constraints:
+  - "The number of nodes is in the range [0, 2000]"
+  - "-1000 <= Node.val <= 1000"
+time_limit_seconds: 30
+hints:
+  - "Use a queue (BFS) to process nodes level by level."
+  - "At each level, process all nodes currently in the queue before moving to the next level."

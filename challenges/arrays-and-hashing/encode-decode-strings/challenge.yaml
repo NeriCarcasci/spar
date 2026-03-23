@@ -1,0 +1,31 @@
+id: encode-decode-strings
+title: "Encode and Decode Strings"
+difficulty: medium
+category: arrays-and-hashing
+collection: the-foundation
+tags: [string, encoding, design]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Design an algorithm to encode a list of strings into a single string, and
+  decode that single string back into the original list of strings.
+
+  The encoded string must be decodable back to the exact original list.
+  Strings may contain any character including special characters.
+
+  Implement two functions:
+  - `encode(strs)` — takes a list of strings and returns a single encoded string
+  - `decode(s)` — takes the encoded string and returns the original list
+examples:
+  - input: "strs = [\"hello\",\"world\"]"
+    output: "[\"hello\",\"world\"]"
+    explanation: "Encoding then decoding returns the original list"
+  - input: "strs = [\"\"]"
+    output: "[\"\"]"
+constraints:
+  - "0 <= strs.length <= 200"
+  - "0 <= strs[i].length <= 200"
+  - "strs[i] may contain any character including delimiters"
+time_limit_seconds: 30
+hints:
+  - "How can you distinguish between a delimiter inside a string and one between strings?"
+  - "What if you prefix each string with its length?"

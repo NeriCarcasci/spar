@@ -1,0 +1,23 @@
+id: contains-duplicate
+title: "Contains Duplicate"
+difficulty: easy
+category: arrays-and-hashing
+collection: the-foundation
+tags: [hash-set, sorting]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given an integer array `nums`, return `true` if any value appears at least
+  twice in the array, and `false` if every element is distinct.
+examples:
+  - input: "nums = [1,2,3,1]"
+    output: "true"
+    explanation: "The value 1 appears at index 0 and index 3"
+  - input: "nums = [1,2,3,4]"
+    output: "false"
+constraints:
+  - "1 <= nums.length <= 10^5"
+  - "-10^9 <= nums[i] <= 10^9"
+time_limit_seconds: 30
+hints:
+  - "What data structure lets you check membership in constant time?"
+  - "Could you sort the array and check adjacent elements instead?"

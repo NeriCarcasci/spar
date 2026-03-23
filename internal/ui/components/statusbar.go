@@ -38,48 +38,86 @@ func (s StatusBar) WithHints(hints []KeyHint) StatusBar {
 }
 
 func (s StatusBar) View() string {
+	if s.width <= 0 {
+		return ""
+	}
+
 	modeStyle := lipgloss.NewStyle().
 		Background(theme.Red).
 		Foreground(theme.Background).
 		Bold(true).
 		Padding(0, 1)
 
+	hintKeyStyle := lipgloss.NewStyle().
+		Foreground(theme.TextDim).
+		Bold(true)
+
+	hintTextStyle := lipgloss.NewStyle().
+		Foreground(theme.TextFaint)
+
+	separatorStyle := lipgloss.NewStyle().Foreground(theme.TextFaint)
 	barStyle := lipgloss.NewStyle().
 		Background(theme.Surface2).
-		Foreground(theme.TextDim).
-		Padding(0, 1)
+		Width(s.width)
 
-	modeSection := modeStyle.Render(s.mode)
-
-	var hintParts []string
-	for _, h := range s.hints {
-		keyStyle := lipgloss.NewStyle().
-			Background(theme.Surface2).
-			Foreground(theme.TextMid).
-			Bold(true)
-		descStyle := lipgloss.NewStyle().
-			Background(theme.Surface2).
-			Foreground(theme.TextDim)
-		hint := keyStyle.Render(h.Key) + " " + descStyle.Render(h.Description)
-		hintParts = append(hintParts, hint)
+	modeSection := modeStyle.Render(strings.ToUpper(s.mode))
+	available := s.width - lipgloss.Width(modeSection)
+	if available < 1 {
+		return barStyle.Render(cutToWidth(modeSection, s.width))
 	}
 
-	sepStyle := lipgloss.NewStyle().
-		Background(theme.Surface2).
-		Foreground(theme.Border)
-	hintsSection := strings.Join(hintParts, sepStyle.Render(" │ "))
-
-	modeWidth := lipgloss.Width(modeSection)
-	hintsWidth := lipgloss.Width(hintsSection)
-	gap := s.width - modeWidth - hintsWidth
+	hints := buildHints(s.hints, hintKeyStyle, hintTextStyle, separatorStyle, available)
+	hintsWidth := lipgloss.Width(hints)
+	gap := available - hintsWidth
 	if gap < 0 {
 		gap = 0
 	}
 
-	bar := modeSection + barStyle.Render(strings.Repeat(" ", gap)) + hintsSection
+	line := lipgloss.JoinHorizontal(lipgloss.Center,
+		modeSection,
+		strings.Repeat(" ", gap),
+		hints,
+	)
 
-	return lipgloss.NewStyle().
-		Width(s.width).
-		Background(theme.Surface2).
-		Render(bar)
+	return barStyle.Render(cutToWidth(line, s.width))
+}
+
+func buildHints(hints []KeyHint, keyStyle, textStyle, sepStyle lipgloss.Style, maxWidth int) string {
+	if maxWidth <= 0 {
+		return ""
+	}
+
+	sep := sepStyle.Render(" | ")
+	parts := make([]string, 0, len(hints))
+	for _, h := range hints {
+		parts = append(parts, keyStyle.Render(h.Key)+" "+textStyle.Render(h.Description))
+	}
+
+	var chosen []string
+	for _, p := range parts {
+		candidate := p
+		if len(chosen) > 0 {
+			candidate = strings.Join(append(chosen, p), sep)
+		}
+		if lipgloss.Width(candidate) > maxWidth {
+			break
+		}
+		chosen = append(chosen, p)
+	}
+
+	if len(chosen) == 0 {
+		return ""
+	}
+
+	return strings.Join(chosen, sep)
+}
+
+func cutToWidth(value string, width int) string {
+	if width <= 0 {
+		return ""
+	}
+	if lipgloss.Width(value) <= width {
+		return value
+	}
+	return lipgloss.NewStyle().Width(width).MaxWidth(width).Inline(true).Render(value)
 }

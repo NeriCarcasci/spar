@@ -1,0 +1,25 @@
+id: valid-palindrome
+title: "Valid Palindrome"
+difficulty: easy
+category: two-pointers
+collection: the-foundation
+tags: [two-pointers, string]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  A phrase is a palindrome if, after converting all uppercase letters to lowercase
+  and removing all non-alphanumeric characters, it reads the same forward and backward.
+
+  Given a string `s`, return `true` if it is a palindrome, or `false` otherwise.
+examples:
+  - input: "s = \"A man, a plan, a canal: Panama\""
+    output: "true"
+    explanation: "After cleaning: \"amanaplanacanalpanama\" is a palindrome"
+  - input: "s = \"race a car\""
+    output: "false"
+constraints:
+  - "1 <= s.length <= 2 * 10^5"
+  - "s consists only of printable ASCII characters"
+time_limit_seconds: 30
+hints:
+  - "Use two pointers starting from the ends and moving inward."
+  - "Skip non-alphanumeric characters as you go."

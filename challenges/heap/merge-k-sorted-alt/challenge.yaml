@@ -1,0 +1,30 @@
+id: merge-k-sorted-alt
+title: "K Closest Points to Origin"
+difficulty: medium
+category: heap
+collection: the-foundation
+tags: [heap, sorting, math]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given an array of `points` where `points[i] = [xi, yi]` represents a point
+  on the X-Y plane and an integer `k`, return the `k` closest points to the
+  origin `(0, 0)`.
+
+  The distance between two points is the Euclidean distance. You do not need
+  to compute the actual square root.
+
+  Return the result sorted by distance (ascending). If two points have the
+  same distance, sort by x-coordinate, then by y-coordinate.
+examples:
+  - input: "points = [[1,3],[-2,2]], k = 1"
+    output: "[[-2,2]]"
+    explanation: "Distance of (1,3) = sqrt(10), distance of (-2,2) = sqrt(8). Closest is (-2,2)."
+  - input: "points = [[3,3],[5,-1],[-2,4]], k = 2"
+    output: "[[-2,4],[3,3]]"
+constraints:
+  - "1 <= k <= points.length <= 10^4"
+  - "-10^4 <= xi, yi <= 10^4"
+time_limit_seconds: 30
+hints:
+  - "You can compare squared distances to avoid computing square roots."
+  - "A max-heap of size k lets you efficiently track the k smallest distances."

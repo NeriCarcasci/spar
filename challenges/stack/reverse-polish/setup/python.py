@@ -1,0 +1,2 @@
+def eval_rpn(tokens: list[str]) -> int:
+    pass

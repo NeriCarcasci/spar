@@ -1,0 +1,42 @@
+tests:
+  - input:
+      candidates: [2, 3, 6, 7]
+      target: 7
+    expected: [[2,2,3],[7]]
+    visible: true
+
+  - input:
+      candidates: [2, 3, 5]
+      target: 8
+    expected: [[2,2,2,2],[2,3,3],[3,5]]
+    visible: true
+
+  - input:
+      candidates: [2]
+      target: 1
+    expected: []
+    visible: false
+
+  - input:
+      candidates: [7]
+      target: 7
+    expected: [[7]]
+    visible: false
+
+  - input:
+      candidates: [2, 3, 5]
+      target: 0
+    expected: [[]]
+    visible: false
+
+  - input:
+      candidates: [2, 3, 5, 7]
+      target: 10
+    expected: [[2,2,2,2,2],[2,2,3,3],[2,3,5],[3,7],[5,5]]
+    visible: false
+
+  - input:
+      candidates: [3, 5, 8]
+      target: 11
+    expected: [[3,3,5],[3,8]]
+    visible: false

@@ -10,9 +10,13 @@ import (
 
 const minimumDisplayDuration = 1500 * time.Millisecond
 
-const logo = `╭──╮╭──╮╭──╮╭──╮
-╰─╮│╰──╯├──┤├─╮│
-╰──╯╵   ╵  ╵╵ ╰╯`
+const logo = `
+  ____  ____   ___   ____
+ / ___||  _ \ / _ \ |  _ \
+ \___ \| |_) | | | || |_) |
+  ___) |  __/| |_| ||  _ <
+ |____/|_|    \___/ |_| \_\
+`
 
 const tagline = "code under pressure"
 
@@ -55,6 +59,10 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
+	if m.width <= 0 || m.height <= 0 {
+		return ""
+	}
+
 	logoStyle := lipgloss.NewStyle().
 		Foreground(theme.Red).
 		Bold(true)
@@ -68,7 +76,6 @@ func (m Model) View() string {
 
 	content := lipgloss.JoinVertical(
 		lipgloss.Center,
-		"",
 		logoStyle.Render(logo),
 		"",
 		taglineStyle.Render(tagline),
@@ -76,12 +83,19 @@ func (m Model) View() string {
 		spinnerStyle.Render(spinnerFrame(m.frame)),
 	)
 
-	return lipgloss.Place(
-		m.width, m.height,
-		lipgloss.Center, lipgloss.Center,
+	placed := lipgloss.Place(
+		m.width,
+		m.height,
+		lipgloss.Center,
+		lipgloss.Center,
 		content,
-		lipgloss.WithWhitespaceBackground(theme.Background),
 	)
+
+	return lipgloss.NewStyle().
+		Width(m.width).
+		Height(m.height).
+		Background(theme.Background).
+		Render(placed)
 }
 
 func (m Model) ReadyToTransition() bool {
@@ -109,6 +123,6 @@ func startMinimumTimer() tea.Cmd {
 }
 
 func spinnerFrame(frame int) string {
-	frames := []string{"⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"}
+	frames := []string{"-", "\\", "|", "/"}
 	return frames[frame%len(frames)] + " loading..."
 }

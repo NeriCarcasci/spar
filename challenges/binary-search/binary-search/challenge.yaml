@@ -1,0 +1,26 @@
+id: binary-search
+title: "Binary Search"
+difficulty: easy
+category: binary-search
+collection: the-foundation
+tags: [binary-search]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given a sorted array of integers `nums` and an integer `target`, return the
+  index of `target` if it exists in the array. Otherwise, return -1.
+
+  You must write an algorithm with O(log n) runtime complexity.
+examples:
+  - input: "nums = [-1,0,3,5,9,12], target = 9"
+    output: "4"
+  - input: "nums = [-1,0,3,5,9,12], target = 2"
+    output: "-1"
+constraints:
+  - "1 <= nums.length <= 10^4"
+  - "nums is sorted in ascending order"
+  - "All values in nums are unique"
+  - "-10^4 < nums[i], target < 10^4"
+time_limit_seconds: 30
+hints:
+  - "Compare the target to the middle element."
+  - "Narrow the search space by half each iteration."

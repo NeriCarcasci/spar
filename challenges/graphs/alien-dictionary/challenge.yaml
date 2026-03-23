@@ -1,0 +1,39 @@
+id: alien-dictionary
+title: "Alien Dictionary"
+difficulty: hard
+category: graphs
+collection: the-foundation
+tags: [topological-sort, bfs, graph]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  There is a new alien language that uses the English alphabet. However, the
+  order of the letters is unknown to you.
+
+  You are given a list of strings `words` from the alien language's dictionary,
+  where the strings in `words` are sorted lexicographically by the rules of
+  this new language.
+
+  Derive the order of letters in this language, and return it. If the given
+  input is invalid, return an empty string. If there are multiple valid
+  solutions, return any of them.
+
+  A string `s` is lexicographically smaller than a string `t` if at the first
+  letter where they differ, the letter in `s` comes before the letter in `t`
+  in the alien language. If the first `min(s.length, t.length)` letters are the
+  same, then `s` is smaller only if `s.length < t.length`.
+examples:
+  - input: "words = [\"wrt\",\"wrf\",\"er\",\"ett\",\"rftt\"]"
+    output: "\"wertf\""
+  - input: "words = [\"z\",\"x\"]"
+    output: "\"zx\""
+  - input: "words = [\"z\",\"x\",\"z\"]"
+    output: "\"\""
+constraints:
+  - "1 <= words.length <= 100"
+  - "1 <= words[i].length <= 100"
+  - "words[i] consists of only lowercase English letters."
+time_limit_seconds: 30
+hints:
+  - "Compare adjacent words to find ordering relationships between characters."
+  - "Build a directed graph of character orderings and perform topological sort."
+  - "If a word is a prefix of another but comes after it, the input is invalid."

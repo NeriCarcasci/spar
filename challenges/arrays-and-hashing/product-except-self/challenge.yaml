@@ -1,0 +1,29 @@
+id: product-except-self
+title: "Product of Array Except Self"
+difficulty: medium
+category: arrays-and-hashing
+collection: the-foundation
+tags: [prefix-product, array]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given an integer array `nums`, return an array `answer` such that `answer[i]`
+  is equal to the product of all the elements of `nums` except `nums[i]`.
+
+  The product of any prefix or suffix of `nums` is guaranteed to fit in a
+  32-bit integer.
+
+  You must solve it without using the division operator and in O(n) time.
+examples:
+  - input: "nums = [1,2,3,4]"
+    output: "[24,12,8,6]"
+    explanation: "For index 0: 2*3*4=24, index 1: 1*3*4=12, etc."
+  - input: "nums = [-1,1,0,-3,3]"
+    output: "[0,0,9,0,0]"
+constraints:
+  - "2 <= nums.length <= 10^5"
+  - "-30 <= nums[i] <= 30"
+  - "The product of any prefix or suffix fits in a 32-bit integer"
+time_limit_seconds: 30
+hints:
+  - "Think about prefix products and suffix products."
+  - "Can you build the result using two passes instead of extra arrays?"

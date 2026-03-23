@@ -1,0 +1,35 @@
+tests:
+  - input:
+      strs: ["hello", "world"]
+    expected: ["hello", "world"]
+    visible: true
+
+  - input:
+      strs: [""]
+    expected: [""]
+    visible: true
+
+  - input:
+      strs: []
+    expected: []
+    visible: false
+
+  - input:
+      strs: ["a", "b", "c"]
+    expected: ["a", "b", "c"]
+    visible: false
+
+  - input:
+      strs: ["contains:colons", "and#special", "ch@rs!"]
+    expected: ["contains:colons", "and#special", "ch@rs!"]
+    visible: false
+
+  - input:
+      strs: ["", "", ""]
+    expected: ["", "", ""]
+    visible: false
+
+  - input:
+      strs: ["4#abcd", "3#xyz"]
+    expected: ["4#abcd", "3#xyz"]
+    visible: false

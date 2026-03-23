@@ -1,0 +1,30 @@
+id: n-queens
+title: "N-Queens"
+difficulty: hard
+category: backtracking
+collection: the-foundation
+tags: [backtracking, recursion]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  The n-queens puzzle is the problem of placing `n` queens on an `n x n`
+  chessboard such that no two queens attack each other.
+
+  Given an integer `n`, return all distinct solutions to the n-queens puzzle.
+  You may return the answer in any order.
+
+  Each solution contains a distinct board configuration of the n-queens'
+  placement, where `'Q'` and `'.'` indicate a queen and an empty space,
+  respectively.
+
+  Return solutions sorted lexicographically.
+examples:
+  - input: "n = 4"
+    output: "[[\".Q..\",\"...Q\",\"Q...\",\"..Q.\"],[\"..Q.\",\"Q...\",\"...Q\",\".Q..\"]]"
+  - input: "n = 1"
+    output: "[[\"Q\"]]"
+constraints:
+  - "1 <= n <= 9"
+time_limit_seconds: 30
+hints:
+  - "Place queens row by row, checking column and diagonal conflicts."
+  - "Track occupied columns, main diagonals (row-col), and anti-diagonals (row+col)."

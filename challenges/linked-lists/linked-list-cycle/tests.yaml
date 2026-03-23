@@ -1,0 +1,16 @@
+tests:
+  - input: { head: [3, 2, 0, -4], pos: 1 }
+    expected: true
+    visible: true
+  - input: { head: [1], pos: -1 }
+    expected: false
+    visible: true
+  - input: { head: [], pos: -1 }
+    expected: false
+    visible: false
+  - input: { head: [1, 2], pos: 0 }
+    expected: true
+    visible: false
+  - input: { head: [1, 2], pos: -1 }
+    expected: false
+    visible: false

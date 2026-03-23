@@ -1,0 +1,24 @@
+id: largest-rect-histogram
+title: "Largest Rectangle in Histogram"
+difficulty: hard
+category: stack
+collection: the-foundation
+tags: [stack, monotonic-stack]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given an array of integers `heights` representing the histogram's bar heights
+  where the width of each bar is 1, return the area of the largest rectangle
+  that can be formed in the histogram.
+examples:
+  - input: "heights = [2,1,5,6,2,3]"
+    output: "10"
+    explanation: "The largest rectangle has area 10, spanning bars of height 5 and 6"
+  - input: "heights = [2,4]"
+    output: "4"
+constraints:
+  - "1 <= heights.length <= 10^5"
+  - "0 <= heights[i] <= 10^4"
+time_limit_seconds: 30
+hints:
+  - "For each bar, find how far it can extend left and right."
+  - "Use a monotonic increasing stack of indices."

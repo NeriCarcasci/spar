@@ -1,0 +1,24 @@
+id: implement-trie
+title: "Implement Trie (Prefix Tree)"
+difficulty: medium
+category: tries
+collection: the-foundation
+tags: [trie, design, string]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Implement a trie (prefix tree) with the following operations:
+
+  - `insert(word)` — Inserts the string `word` into the trie.
+  - `search(word)` — Returns `true` if the string `word` is in the trie (i.e., was inserted before), and `false` otherwise.
+  - `starts_with(prefix)` — Returns `true` if there is a previously inserted string that has the prefix `prefix`, and `false` otherwise.
+examples:
+  - input: "insert('apple'), search('apple'), search('app'), startsWith('app'), insert('app'), search('app')"
+    output: "null, true, false, true, null, true"
+constraints:
+  - "1 <= word.length, prefix.length <= 2000"
+  - "word and prefix consist only of lowercase English letters"
+  - "At most 3 * 10^4 calls in total will be made to insert, search, and startsWith"
+time_limit_seconds: 30
+hints:
+  - "Each node in the trie can have up to 26 children (one per letter)."
+  - "Use a boolean flag at each node to mark the end of a complete word."

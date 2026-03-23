@@ -1,0 +1,36 @@
+tests:
+  - input:
+      operations: ["add_num", "add_num", "find_median", "add_num", "find_median"]
+      values: [1, 2, null, 3, null]
+    expected: [null, null, 1.5, null, 2.0]
+    visible: true
+
+  - input:
+      operations: ["add_num", "find_median"]
+      values: [5, null]
+    expected: [null, 5.0]
+    visible: true
+
+  - input:
+      operations: ["add_num", "add_num", "add_num", "add_num", "find_median"]
+      values: [1, 2, 3, 4, null]
+    expected: [null, null, null, null, 2.5]
+    visible: false
+
+  - input:
+      operations: ["add_num", "add_num", "find_median", "add_num", "find_median"]
+      values: [-1, -2, null, -3, null]
+    expected: [null, null, -1.5, null, -2.0]
+    visible: false
+
+  - input:
+      operations: ["add_num", "add_num", "add_num", "find_median"]
+      values: [5, 5, 5, null]
+    expected: [null, null, null, 5.0]
+    visible: false
+
+  - input:
+      operations: ["add_num", "find_median", "add_num", "find_median", "add_num", "find_median"]
+      values: [10, null, 20, null, 30, null]
+    expected: [null, 10.0, null, 15.0, null, 20.0]
+    visible: false

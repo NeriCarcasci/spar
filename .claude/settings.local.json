@@ -8,7 +8,18 @@
       "Bash(go vet:*)",
       "Bash(./codedojo.exe version:*)",
       "Bash(./spar.exe version:*)",
-      "Bash(./spar.exe --help)"
+      "Bash(./spar.exe --help)",
+      "Bash(for id:*)",
+      "Bash(do)",
+      "Bash(mkdir -p \"d:/SharedDocuments/spar/challenges/trees/$id/setup\")",
+      "Bash(mkdir -p \"d:/SharedDocuments/spar/challenges/trees/$id/solutions\")",
+      "Bash(done)",
+      "Bash(mkdir -p \"d:/SharedDocuments/spar/challenges/tries/$id/setup\")",
+      "Bash(mkdir -p \"d:/SharedDocuments/spar/challenges/tries/$id/solutions\")",
+      "Bash(mkdir -p \"d:/SharedDocuments/spar/challenges/graphs/$id/setup\")",
+      "Bash(mkdir -p \"d:/SharedDocuments/spar/challenges/graphs/$id/solutions\")",
+      "Bash(python3 -c \":*)",
+      "Bash(python -c \":*)"
     ]
   }
 }

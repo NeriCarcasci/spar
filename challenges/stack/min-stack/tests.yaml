@@ -1,0 +1,26 @@
+tests:
+  - input:
+      operations: ["push", "push", "push", "get_min", "pop", "top", "get_min"]
+      values: [-2, 0, -3, null, null, null, null]
+    expected: [null, null, null, -3, null, 0, -2]
+    visible: true
+  - input:
+      operations: ["push", "push", "get_min", "pop", "get_min"]
+      values: [1, 0, null, null, null]
+    expected: [null, null, 0, null, 1]
+    visible: true
+  - input:
+      operations: ["push", "get_min", "top"]
+      values: [5, null, null]
+    expected: [null, 5, 5]
+    visible: false
+  - input:
+      operations: ["push", "push", "push", "push", "get_min"]
+      values: [3, 2, 1, 0, null]
+    expected: [null, null, null, null, 0]
+    visible: false
+  - input:
+      operations: ["push", "push", "pop", "push", "get_min"]
+      values: [-1, -2, null, -3, null]
+    expected: [null, null, null, null, -3]
+    visible: false

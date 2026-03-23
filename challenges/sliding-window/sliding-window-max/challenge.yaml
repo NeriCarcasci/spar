@@ -1,0 +1,26 @@
+id: sliding-window-max
+title: "Sliding Window Maximum"
+difficulty: hard
+category: sliding-window
+collection: the-foundation
+tags: [sliding-window, deque, monotonic-queue]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  You are given an array of integers `nums` and a sliding window of size `k`
+  that moves from the very left to the very right of the array. You can only
+  see the `k` numbers in the window. Each time the window moves right by one position.
+
+  Return the maximum value in each window position.
+examples:
+  - input: "nums = [1,3,-1,-3,5,3,6,7], k = 3"
+    output: "[3,3,5,5,6,7]"
+  - input: "nums = [1], k = 1"
+    output: "[1]"
+constraints:
+  - "1 <= nums.length <= 10^5"
+  - "-10^4 <= nums[i] <= 10^4"
+  - "1 <= k <= nums.length"
+time_limit_seconds: 30
+hints:
+  - "A brute force approach checks all k elements per window. Can you do better?"
+  - "Use a monotonic decreasing deque that stores indices."

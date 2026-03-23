@@ -12,6 +12,7 @@ var (
 	TextPrimary = lipgloss.Color("#E8E8E8")
 	TextMid     = lipgloss.Color("#999999")
 	TextDim     = lipgloss.Color("#555555")
+	TextFaint   = lipgloss.Color("#333333")
 
 	Red      = lipgloss.Color("#FF3B30")
 	RedLight = lipgloss.Color("#FF6B5E")

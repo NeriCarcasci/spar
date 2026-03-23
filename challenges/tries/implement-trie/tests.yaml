@@ -1,0 +1,42 @@
+tests:
+  - input:
+      operations: ["insert", "search", "search", "starts_with", "insert", "search"]
+      values: ["apple", "apple", "app", "app", "app", "app"]
+    expected: [null, true, false, true, null, true]
+    visible: true
+
+  - input:
+      operations: ["insert", "search", "starts_with"]
+      values: ["hello", "hello", "hell"]
+    expected: [null, true, true]
+    visible: true
+
+  - input:
+      operations: ["search", "starts_with"]
+      values: ["empty", "empty"]
+    expected: [false, false]
+    visible: false
+
+  - input:
+      operations: ["insert", "insert", "search", "search"]
+      values: ["a", "b", "a", "b"]
+    expected: [null, null, true, true]
+    visible: false
+
+  - input:
+      operations: ["insert", "insert", "insert", "starts_with", "starts_with", "search"]
+      values: ["abc", "ab", "a", "a", "abc", "ab"]
+    expected: [null, null, null, true, true, true]
+    visible: false
+
+  - input:
+      operations: ["insert", "search", "starts_with", "search"]
+      values: ["prefix", "prefix", "pre", "pre"]
+    expected: [null, true, true, false]
+    visible: false
+
+  - input:
+      operations: ["insert", "insert", "search", "search", "starts_with"]
+      values: ["app", "apple", "app", "apple", "appl"]
+    expected: [null, null, true, true, true]
+    visible: false

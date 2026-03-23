@@ -1,0 +1,27 @@
+id: top-k-frequent
+title: "Top K Frequent Elements"
+difficulty: medium
+category: arrays-and-hashing
+collection: the-foundation
+tags: [hash-map, heap, bucket-sort]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given an integer array `nums` and an integer `k`, return the `k` most
+  frequent elements. You may return the answer in any order.
+
+  It is guaranteed that the answer is unique.
+examples:
+  - input: "nums = [1,1,1,2,2,3], k = 2"
+    output: "[1,2]"
+    explanation: "1 appears 3 times, 2 appears 2 times"
+  - input: "nums = [1], k = 1"
+    output: "[1]"
+constraints:
+  - "1 <= nums.length <= 10^5"
+  - "-10^4 <= nums[i] <= 10^4"
+  - "k is in the range [1, number of unique elements]"
+  - "The answer is guaranteed to be unique"
+time_limit_seconds: 30
+hints:
+  - "Count the frequency of each element first."
+  - "Can you use bucket sort where the index is the frequency?"

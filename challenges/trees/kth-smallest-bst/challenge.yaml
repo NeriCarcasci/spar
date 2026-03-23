@@ -1,0 +1,24 @@
+id: kth-smallest-bst
+title: "Kth Smallest Element in a BST"
+difficulty: medium
+category: trees
+collection: the-foundation
+tags: [binary-search-tree, in-order-traversal, dfs]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given the root of a binary search tree and an integer `k`, return the
+  `k`th smallest value (1-indexed) of all the values of the nodes in the
+  tree.
+examples:
+  - input: "root = [3,1,4,null,2], k = 1"
+    output: "1"
+  - input: "root = [5,3,6,2,4,null,null,1], k = 3"
+    output: "3"
+constraints:
+  - "The number of nodes is n"
+  - "1 <= k <= n <= 10^4"
+  - "0 <= Node.val <= 10^4"
+time_limit_seconds: 30
+hints:
+  - "In-order traversal of a BST visits nodes in sorted order."
+  - "You can stop the traversal early once you've found the kth element."

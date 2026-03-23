@@ -1,0 +1,29 @@
+id: valid-parentheses
+title: "Valid Parentheses"
+difficulty: easy
+category: stack
+collection: the-foundation
+tags: [stack, string]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given a string `s` containing just the characters `'('`, `')'`, `'{'`, `'}'`,
+  `'['` and `']'`, determine if the input string is valid.
+
+  A string is valid if:
+  1. Open brackets are closed by the same type of brackets.
+  2. Open brackets are closed in the correct order.
+  3. Every close bracket has a corresponding open bracket of the same type.
+examples:
+  - input: "s = \"()\""
+    output: "true"
+  - input: "s = \"()[]{}\""
+    output: "true"
+  - input: "s = \"(]\""
+    output: "false"
+constraints:
+  - "1 <= s.length <= 10^4"
+  - "s consists of parentheses only: '()[]{}'"
+time_limit_seconds: 30
+hints:
+  - "Use a stack to track opening brackets."
+  - "When you see a closing bracket, check if it matches the top of the stack."

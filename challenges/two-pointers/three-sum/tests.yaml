@@ -1,0 +1,29 @@
+tests:
+  - input:
+      nums: [-1, 0, 1, 2, -1, -4]
+    expected: [[-1, -1, 2], [-1, 0, 1]]
+    visible: true
+  - input:
+      nums: [0, 1, 1]
+    expected: []
+    visible: true
+  - input:
+      nums: [0, 0, 0]
+    expected: [[0, 0, 0]]
+    visible: false
+  - input:
+      nums: [0, 0, 0, 0]
+    expected: [[0, 0, 0]]
+    visible: false
+  - input:
+      nums: [-2, 0, 1, 1, 2]
+    expected: [[-2, 0, 2], [-2, 1, 1]]
+    visible: false
+  - input:
+      nums: [1, 2, -2, -1]
+    expected: []
+    visible: false
+  - input:
+      nums: [-1, -1, -1, 2]
+    expected: [[-1, -1, 2]]
+    visible: false

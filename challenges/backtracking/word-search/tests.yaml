@@ -1,0 +1,42 @@
+tests:
+  - input:
+      board: [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]]
+      word: "ABCCED"
+    expected: true
+    visible: true
+
+  - input:
+      board: [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]]
+      word: "SEE"
+    expected: true
+    visible: true
+
+  - input:
+      board: [["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]]
+      word: "ABCB"
+    expected: false
+    visible: true
+
+  - input:
+      board: [["A"]]
+      word: "A"
+    expected: true
+    visible: false
+
+  - input:
+      board: [["A","B"],["C","D"]]
+      word: "ABCDE"
+    expected: false
+    visible: false
+
+  - input:
+      board: [["A","A","A"],["A","A","A"],["A","A","A"]]
+      word: "AAAAAAAAA"
+    expected: true
+    visible: false
+
+  - input:
+      board: [["A","B"],["C","D"]]
+      word: "ACDB"
+    expected: true
+    visible: false

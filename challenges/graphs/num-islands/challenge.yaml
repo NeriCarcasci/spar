@@ -1,0 +1,28 @@
+id: num-islands
+title: "Number of Islands"
+difficulty: medium
+category: graphs
+collection: the-foundation
+tags: [bfs, dfs, matrix]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given an `m x n` 2D binary grid which represents a map of `'1'`s (land) and
+  `'0'`s (water), return the number of islands.
+
+  An island is surrounded by water and is formed by connecting adjacent lands
+  horizontally or vertically. You may assume all four edges of the grid are
+  surrounded by water.
+examples:
+  - input: "grid = [[\"1\",\"1\",\"1\",\"1\",\"0\"],[\"1\",\"1\",\"0\",\"1\",\"0\"],[\"1\",\"1\",\"0\",\"0\",\"0\"],[\"0\",\"0\",\"0\",\"0\",\"0\"]]"
+    output: "1"
+  - input: "grid = [[\"1\",\"1\",\"0\",\"0\",\"0\"],[\"1\",\"1\",\"0\",\"0\",\"0\"],[\"0\",\"0\",\"1\",\"0\",\"0\"],[\"0\",\"0\",\"0\",\"1\",\"1\"]]"
+    output: "3"
+constraints:
+  - "m == grid.length"
+  - "n == grid[i].length"
+  - "1 <= m, n <= 300"
+  - "grid[i][j] is '0' or '1'"
+time_limit_seconds: 30
+hints:
+  - "Iterate through the grid. When you find a '1', increment count and flood-fill to mark the island."
+  - "DFS or BFS both work for the flood-fill."

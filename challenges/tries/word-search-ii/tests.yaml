@@ -1,0 +1,42 @@
+tests:
+  - input:
+      board: [["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]]
+      words: ["oath","pea","eat","rain"]
+    expected: ["eat","oath"]
+    visible: true
+
+  - input:
+      board: [["a","b"],["c","d"]]
+      words: ["abcb"]
+    expected: []
+    visible: true
+
+  - input:
+      board: [["a"]]
+      words: ["a"]
+    expected: ["a"]
+    visible: false
+
+  - input:
+      board: [["a","a"],["a","a"]]
+      words: ["aaaa","aaa","aa","a"]
+    expected: ["a","aa","aaa","aaaa"]
+    visible: false
+
+  - input:
+      board: [["a","b","c"],["d","e","f"],["g","h","i"]]
+      words: ["xyz","abc","def"]
+    expected: ["abc","def"]
+    visible: false
+
+  - input:
+      board: [["a","b"],["c","d"]]
+      words: ["ac","bd","ab","cd"]
+    expected: ["ab","ac","bd","cd"]
+    visible: false
+
+  - input:
+      board: [["x","y","z"],["a","b","c"]]
+      words: ["nothere","missing"]
+    expected: []
+    visible: false

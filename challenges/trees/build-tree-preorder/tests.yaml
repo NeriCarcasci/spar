@@ -1,0 +1,30 @@
+tests:
+  - input:
+      preorder: [3, 9, 20, 15, 7]
+      inorder: [9, 3, 15, 20, 7]
+    expected: [3, 9, 20, null, null, 15, 7]
+    visible: true
+
+  - input:
+      preorder: [1]
+      inorder: [1]
+    expected: [1]
+    visible: true
+
+  - input:
+      preorder: [-1]
+      inorder: [-1]
+    expected: [-1]
+    visible: false
+
+  - input:
+      preorder: [1, 2]
+      inorder: [2, 1]
+    expected: [1, 2]
+    visible: false
+
+  - input:
+      preorder: [1, 2, 3]
+      inorder: [2, 1, 3]
+    expected: [1, 2, 3]
+    visible: false

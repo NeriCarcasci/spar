@@ -1,0 +1,32 @@
+id: serialize-deserialize
+title: "Serialize and Deserialize Binary Tree"
+difficulty: hard
+category: trees
+collection: the-foundation
+tags: [binary-tree, design, dfs, bfs]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Design an algorithm to serialize and deserialize a binary tree. There is
+  no restriction on how your serialization/deserialization algorithm should
+  work. You just need to ensure that a binary tree can be serialized to a
+  string and this string can be deserialized to the original tree structure.
+
+  Implement two functions:
+  - `serialize(root)` encodes a tree to a single string.
+  - `deserialize(data)` decodes your encoded data to a tree.
+
+  The output tree should match the input tree when represented in level-order
+  format.
+examples:
+  - input: "root = [1,2,3,null,null,4,5]"
+    output: "[1,2,3,null,null,4,5]"
+    explanation: "The tree round-trips through serialize then deserialize"
+  - input: "root = []"
+    output: "[]"
+constraints:
+  - "The number of nodes is in the range [0, 10^4]"
+  - "-1000 <= Node.val <= 1000"
+time_limit_seconds: 30
+hints:
+  - "Consider preorder traversal with null markers to capture the tree structure."
+  - "Use a delimiter between values in your serialized string."

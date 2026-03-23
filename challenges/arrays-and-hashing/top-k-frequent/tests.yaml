@@ -1,0 +1,42 @@
+tests:
+  - input:
+      nums: [1, 1, 1, 2, 2, 3]
+      k: 2
+    expected: [1, 2]
+    visible: true
+
+  - input:
+      nums: [1]
+      k: 1
+    expected: [1]
+    visible: true
+
+  - input:
+      nums: [4, 4, 4, 1, 1, 2, 2, 2, 3]
+      k: 2
+    expected: [2, 4]
+    visible: false
+
+  - input:
+      nums: [1, 2, 3, 4, 5]
+      k: 5
+    expected: [1, 2, 3, 4, 5]
+    visible: false
+
+  - input:
+      nums: [-1, -1, -2, -2, -2, -3]
+      k: 1
+    expected: [-2]
+    visible: false
+
+  - input:
+      nums: [7, 7, 7, 7, 7]
+      k: 1
+    expected: [7]
+    visible: false
+
+  - input:
+      nums: [1, 2, 2, 3, 3, 3]
+      k: 3
+    expected: [1, 2, 3]
+    visible: false

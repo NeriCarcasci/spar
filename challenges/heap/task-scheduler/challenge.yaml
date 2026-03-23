@@ -1,0 +1,29 @@
+id: task-scheduler
+title: "Task Scheduler"
+difficulty: medium
+category: heap
+collection: the-foundation
+tags: [heap, greedy, hash-map]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given an array of CPU tasks, each represented by a single character, and a
+  cooling interval `n`, return the minimum number of intervals the CPU needs
+  to complete all tasks.
+
+  In each interval, the CPU can either complete a task or remain idle. The
+  same task must be separated by at least `n` intervals.
+examples:
+  - input: "tasks = ['A','A','A','B','B','B'], n = 2"
+    output: "8"
+    explanation: "A -> B -> idle -> A -> B -> idle -> A -> B"
+  - input: "tasks = ['A','A','A','B','B','B'], n = 0"
+    output: "6"
+    explanation: "No cooling needed, all tasks can run back to back"
+constraints:
+  - "1 <= tasks.length <= 10^4"
+  - "tasks[i] is an uppercase English letter"
+  - "0 <= n <= 100"
+time_limit_seconds: 30
+hints:
+  - "The most frequent task determines the minimum number of intervals."
+  - "Use the formula: (maxFreq - 1) * (n + 1) + countOfMaxFreq, then take the max with total tasks."

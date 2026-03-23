@@ -1,0 +1,25 @@
+tests:
+  - input:
+      root: [1, 2, 3]
+    expected: 6
+    visible: true
+
+  - input:
+      root: [-10, 9, 20, null, null, 15, 7]
+    expected: 42
+    visible: true
+
+  - input:
+      root: [1]
+    expected: 1
+    visible: false
+
+  - input:
+      root: [-3]
+    expected: -3
+    visible: false
+
+  - input:
+      root: [2, -1, -2]
+    expected: 2
+    visible: false

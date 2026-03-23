@@ -1,0 +1,35 @@
+tests:
+  - input:
+      strs: ["eat", "tea", "tan", "ate", "nat", "bat"]
+    expected: [["ate", "eat", "tea"], ["bat"], ["nat", "tan"]]
+    visible: true
+
+  - input:
+      strs: [""]
+    expected: [[""]]
+    visible: true
+
+  - input:
+      strs: ["a"]
+    expected: [["a"]]
+    visible: false
+
+  - input:
+      strs: ["abc", "bca", "cab", "xyz", "zyx"]
+    expected: [["abc", "bca", "cab"], ["xyz", "zyx"]]
+    visible: false
+
+  - input:
+      strs: ["", ""]
+    expected: [["", ""]]
+    visible: false
+
+  - input:
+      strs: ["listen", "silent", "hello", "world"]
+    expected: [["hello"], ["listen", "silent"], ["world"]]
+    visible: false
+
+  - input:
+      strs: ["a", "b", "c", "d"]
+    expected: [["a"], ["b"], ["c"], ["d"]]
+    visible: false

@@ -1,0 +1,42 @@
+tests:
+  - input:
+      s: "anagram"
+      t: "nagaram"
+    expected: true
+    visible: true
+
+  - input:
+      s: "rat"
+      t: "car"
+    expected: false
+    visible: true
+
+  - input:
+      s: "a"
+      t: "a"
+    expected: true
+    visible: false
+
+  - input:
+      s: "ab"
+      t: "a"
+    expected: false
+    visible: false
+
+  - input:
+      s: ""
+      t: ""
+    expected: true
+    visible: false
+
+  - input:
+      s: "aabbcc"
+      t: "abcabc"
+    expected: true
+    visible: false
+
+  - input:
+      s: "aacc"
+      t: "ccac"
+    expected: false
+    visible: false

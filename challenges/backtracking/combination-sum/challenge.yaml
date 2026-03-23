@@ -1,0 +1,33 @@
+id: combination-sum
+title: "Combination Sum"
+difficulty: medium
+category: backtracking
+collection: the-foundation
+tags: [backtracking, recursion, array]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  Given an array of distinct integers `candidates` and a target integer
+  `target`, return a list of all unique combinations of `candidates` where
+  the chosen numbers sum to `target`. You may return the combinations in any
+  order.
+
+  The same number may be chosen from `candidates` an unlimited number of
+  times. Two combinations are unique if the frequency of at least one of the
+  chosen numbers is different.
+
+  Return the combinations sorted (each combination sorted, and the list of
+  combinations sorted lexicographically).
+examples:
+  - input: "candidates = [2,3,6,7], target = 7"
+    output: "[[2,2,3],[7]]"
+  - input: "candidates = [2,3,5], target = 8"
+    output: "[[2,2,2,2],[2,3,3],[3,5]]"
+constraints:
+  - "1 <= candidates.length <= 30"
+  - "2 <= candidates[i] <= 40"
+  - "All elements of candidates are distinct"
+  - "1 <= target <= 40"
+time_limit_seconds: 30
+hints:
+  - "Sort the candidates first to make it easier to avoid duplicates."
+  - "Use an index parameter to only consider candidates from that position onward."

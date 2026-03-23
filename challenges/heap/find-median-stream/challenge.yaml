@@ -1,0 +1,26 @@
+id: find-median-stream
+title: "Find Median from Data Stream"
+difficulty: hard
+category: heap
+collection: the-foundation
+tags: [heap, design, two-heaps]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  The median is the middle value in an ordered integer list. If the size of the
+  list is even, the median is the average of the two middle values.
+
+  Implement the following:
+  - `add_num(num)` — Adds the integer `num` to the data structure.
+  - `find_median()` — Returns the median of all elements so far as a float.
+examples:
+  - input: "addNum(1), addNum(2), findMedian(), addNum(3), findMedian()"
+    output: "1.5, 2.0"
+    explanation: "After adding 1 and 2, median is (1+2)/2 = 1.5. After adding 3, median is 2.0."
+constraints:
+  - "-10^5 <= num <= 10^5"
+  - "There will be at least one element before findMedian is called"
+  - "At most 5 * 10^4 calls will be made to addNum and findMedian"
+time_limit_seconds: 30
+hints:
+  - "Use two heaps: a max-heap for the lower half and a min-heap for the upper half."
+  - "Keep the heaps balanced so their sizes differ by at most 1."

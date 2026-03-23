@@ -1,0 +1,25 @@
+id: find-min-rotated
+title: "Find Minimum in Rotated Sorted Array"
+difficulty: medium
+category: binary-search
+collection: the-foundation
+tags: [binary-search, array]
+languages: [python, go, javascript, cpp, rust]
+description: |
+  A sorted array of unique integers has been rotated between 1 and n times.
+  Given the rotated array `nums`, return the minimum element.
+
+  You must write an algorithm that runs in O(log n) time.
+examples:
+  - input: "nums = [3,4,5,1,2]"
+    output: "1"
+  - input: "nums = [4,5,6,7,0,1,2]"
+    output: "0"
+constraints:
+  - "1 <= nums.length <= 5000"
+  - "-5000 <= nums[i] <= 5000"
+  - "All values are unique"
+time_limit_seconds: 30
+hints:
+  - "The minimum is at the rotation point."
+  - "If the middle element is greater than the rightmost, the minimum is to the right."

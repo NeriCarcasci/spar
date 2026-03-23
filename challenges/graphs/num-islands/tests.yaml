@@ -1,0 +1,25 @@
+tests:
+  - input:
+      grid: [["1","1","1","1","0"],["1","1","0","1","0"],["1","1","0","0","0"],["0","0","0","0","0"]]
+    expected: 1
+    visible: true
+  - input:
+      grid: [["1","1","0","0","0"],["1","1","0","0","0"],["0","0","1","0","0"],["0","0","0","1","1"]]
+    expected: 3
+    visible: true
+  - input:
+      grid: [["0"]]
+    expected: 0
+    visible: false
+  - input:
+      grid: [["1"]]
+    expected: 1
+    visible: false
+  - input:
+      grid: [["1","0","1"],["0","1","0"],["1","0","1"]]
+    expected: 5
+    visible: false
+  - input:
+      grid: [["1","1"],["1","1"]]
+    expected: 1
+    visible: false
