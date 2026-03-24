@@ -19,6 +19,7 @@ func RunUpdate() {
 	}
 
 	cmd := exec.Command(goPath, "install", installModule)
+	cmd.Env = append(os.Environ(), "GOPROXY=direct", "GONOSUMDB=*")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
