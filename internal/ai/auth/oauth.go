@@ -22,16 +22,16 @@ import (
 )
 
 const (
-	clientID            = "app_EMoamEEZ73f0CkXaXp7hrann"
-	authorizationURL    = "https://auth.openai.com/oauth/authorize"
-	tokenURL            = "https://auth.openai.com/oauth/token"
-	scope               = "openai.chat"
-	tokenRefreshMargin  = 5 * time.Minute
-	callbackPath        = "/auth/callback"
-	portRangeStart      = 14550
-	portRangeEnd        = 14600
-	httpClientTimeout   = 30 * time.Second
-	serverShutdownTimout = 5 * time.Second
+	clientID           = "app_EMoamEEZ73f0CkXaXp7hrann"
+	authorizationURL   = "https://auth.openai.com/oauth/authorize"
+	tokenURL           = "https://auth.openai.com/oauth/token"
+	scope              = "openid profile email offline_access api.connectors.read api.connectors.invoke"
+	tokenRefreshMargin = 5 * time.Minute
+	callbackPath       = "/auth/callback"
+	portRangeStart     = 14550
+	portRangeEnd       = 14600
+	httpClientTimeout  = 30 * time.Second
+	serverShutdownTimeout = 5 * time.Second
 )
 
 type StoredTokens struct {
@@ -111,7 +111,7 @@ func (o *OAuthClient) Login(ctx context.Context) error {
 	}()
 
 	defer func() {
-		shutCtx, cancel := context.WithTimeout(context.Background(), serverShutdownTimout)
+		shutCtx, cancel := context.WithTimeout(context.Background(), serverShutdownTimeout)
 		defer cancel()
 		server.Shutdown(shutCtx)
 	}()
@@ -215,19 +215,15 @@ func (o *OAuthClient) exchangeCode(ctx context.Context, code, redirectURI, verif
 		"client_id":     {clientID},
 		"code_verifier": {verifier},
 	}
-	return o.tokenRequest(ctx, data)
-}
 
-func (o *OAuthClient) refreshToken(ctx context.Context, refreshToken string) (*StoredTokens, error) {
-	data := url.Values{
-		"grant_type":    {"refresh_token"},
-		"refresh_token": {refreshToken},
-		"client_id":     {clientID},
+	var oauthResp struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+		IDToken      string `json:"id_token"`
+		TokenType    string `json:"token_type"`
+		ExpiresIn    int64  `json:"expires_in"`
 	}
-	return o.tokenRequest(ctx, data)
-}
 
-func (o *OAuthClient) tokenRequest(ctx context.Context, data url.Values) (*StoredTokens, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
@@ -249,19 +245,131 @@ func (o *OAuthClient) tokenRequest(ctx context.Context, data url.Values) (*Store
 		return nil, fmt.Errorf("token endpoint returned %d: %s — %s", resp.StatusCode, errResp.Error, errResp.Description)
 	}
 
-	var tokenResp struct {
-		AccessToken  string `json:"access_token"`
-		RefreshToken string `json:"refresh_token"`
-		TokenType    string `json:"token_type"`
-		ExpiresIn    int64  `json:"expires_in"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&oauthResp); err != nil {
 		return nil, fmt.Errorf("decode token response: %w", err)
 	}
 
+	if oauthResp.IDToken == "" {
+		return nil, fmt.Errorf("no id_token in response")
+	}
+
+	apiKey, err := o.exchangeIDTokenForAPIKey(ctx, oauthResp.IDToken)
+	if err != nil {
+		return nil, fmt.Errorf("exchange id_token for API key: %w", err)
+	}
+
 	return &StoredTokens{
-		AccessToken:  tokenResp.AccessToken,
-		RefreshToken: tokenResp.RefreshToken,
+		AccessToken:  apiKey,
+		RefreshToken: oauthResp.RefreshToken,
+		ExpiresAt:    time.Now().Unix() + oauthResp.ExpiresIn,
+		Provider:     "openai",
+	}, nil
+}
+
+func (o *OAuthClient) exchangeIDTokenForAPIKey(ctx context.Context, idToken string) (string, error) {
+	data := url.Values{
+		"grant_type":          {"urn:ietf:params:oauth:grant-type:token-exchange"},
+		"client_id":           {clientID},
+		"requested_token":     {"openai-api-key"},
+		"subject_token":       {idToken},
+		"subject_token_type":  {"urn:ietf:params:oauth:token-type:id_token"},
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(data.Encode()))
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := o.http.Do(req)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		var errResp struct {
+			Error       string `json:"error"`
+			Description string `json:"error_description"`
+		}
+		json.NewDecoder(resp.Body).Decode(&errResp)
+		return "", fmt.Errorf("token exchange returned %d: %s — %s", resp.StatusCode, errResp.Error, errResp.Description)
+	}
+
+	var keyResp struct {
+		AccessToken string `json:"access_token"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&keyResp); err != nil {
+		return "", fmt.Errorf("decode key exchange response: %w", err)
+	}
+
+	if keyResp.AccessToken == "" {
+		return "", fmt.Errorf("no access_token in key exchange response")
+	}
+
+	return keyResp.AccessToken, nil
+}
+
+func (o *OAuthClient) refreshToken(ctx context.Context, refreshTok string) (*StoredTokens, error) {
+	data := url.Values{
+		"grant_type":    {"refresh_token"},
+		"refresh_token": {refreshTok},
+		"client_id":     {clientID},
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, tokenURL, strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := o.http.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		var errResp struct {
+			Error       string `json:"error"`
+			Description string `json:"error_description"`
+		}
+		json.NewDecoder(resp.Body).Decode(&errResp)
+		return nil, fmt.Errorf("refresh endpoint returned %d: %s — %s", resp.StatusCode, errResp.Error, errResp.Description)
+	}
+
+	var tokenResp struct {
+		AccessToken  string `json:"access_token"`
+		RefreshToken string `json:"refresh_token"`
+		IDToken      string `json:"id_token"`
+		ExpiresIn    int64  `json:"expires_in"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
+		return nil, fmt.Errorf("decode refresh response: %w", err)
+	}
+
+	refreshedRefresh := tokenResp.RefreshToken
+	if refreshedRefresh == "" {
+		refreshedRefresh = refreshTok
+	}
+
+	if tokenResp.IDToken == "" {
+		return &StoredTokens{
+			AccessToken:  tokenResp.AccessToken,
+			RefreshToken: refreshedRefresh,
+			ExpiresAt:    time.Now().Unix() + tokenResp.ExpiresIn,
+			Provider:     "openai",
+		}, nil
+	}
+
+	apiKey, err := o.exchangeIDTokenForAPIKey(context.Background(), tokenResp.IDToken)
+	if err != nil {
+		return nil, fmt.Errorf("exchange refreshed id_token for API key: %w", err)
+	}
+
+	return &StoredTokens{
+		AccessToken:  apiKey,
+		RefreshToken: refreshedRefresh,
 		ExpiresAt:    time.Now().Unix() + tokenResp.ExpiresIn,
 		Provider:     "openai",
 	}, nil
@@ -324,13 +432,15 @@ func generateRandomString(n int) (string, error) {
 
 func buildAuthorizationURL(redirectURI, challenge, state string) string {
 	params := url.Values{
-		"response_type":         {"code"},
-		"client_id":             {clientID},
-		"redirect_uri":          {redirectURI},
-		"code_challenge":        {challenge},
-		"code_challenge_method": {"S256"},
-		"state":                 {state},
-		"scope":                 {scope},
+		"response_type":              {"code"},
+		"client_id":                  {clientID},
+		"redirect_uri":               {redirectURI},
+		"code_challenge":             {challenge},
+		"code_challenge_method":      {"S256"},
+		"state":                      {state},
+		"scope":                      {scope},
+		"id_token_add_organizations": {"true"},
+		"codex_cli_simplified_flow":  {"true"},
 	}
 	return authorizationURL + "?" + params.Encode()
 }
