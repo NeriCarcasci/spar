@@ -1,14 +1,18 @@
 package app
 
 import (
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spar-cli/spar/internal/challenge"
 	"github.com/spar-cli/spar/internal/config"
+	"github.com/spar-cli/spar/internal/friends"
 	"github.com/spar-cli/spar/internal/profile"
+	"github.com/spar-cli/spar/internal/rank"
 	"github.com/spar-cli/spar/internal/repo"
 	"github.com/spar-cli/spar/internal/ui/browser"
 	"github.com/spar-cli/spar/internal/ui/dashboard"
@@ -98,7 +102,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		splashModel, cmd := m.splash.Update(splash.LoadingCompleteMsg{})
 		m.splash = splashModel
-		return m, cmd
+		return m, tea.Batch(cmd, syncFriends(m.config))
+
+	case friendSyncDoneMsg:
+		m.dashboard = m.dashboard.HandleFriendSync(msg.results, msg.meta)
+		return m, nil
 
 	case syncCompleteMsg:
 		if msg.result.Updated && m.config.RepoPath != "" {
@@ -180,6 +188,8 @@ func (m Model) updateDashboard(msg tea.Msg) (Model, tea.Cmd) {
 	case dashboard.ProfileChangedMsg:
 		m.profile = msg.Profile
 		return m, saveProfile(msg.Profile)
+	case dashboard.FriendSyncRequestMsg:
+		return m, syncFriends(m.config)
 	}
 
 	dashModel, cmd := m.dashboard.Update(msg)
@@ -221,6 +231,15 @@ func (m Model) updateSession(msg tea.Msg) (Model, tea.Cmd) {
 	case session.NavigateBrowserMsg:
 		m.currentView = DashboardView
 		return m, nil
+	case session.SolvedMsg:
+		m.handleSolve(msg)
+		sessionModel, cmd := m.session.Update(msg)
+		m.session = sessionModel
+		cmds := []tea.Cmd{cmd, saveProfile(m.profile)}
+		if m.config.GitHub.AutoPublish {
+			cmds = append(cmds, autoPublish(m.config, m.profile, m.index))
+		}
+		return m, tea.Batch(cmds...)
 	case tea.KeyMsg:
 		if msg.String() == "q" {
 			return m, tea.Quit
@@ -230,6 +249,49 @@ func (m Model) updateSession(msg tea.Msg) (Model, tea.Cmd) {
 	sessionModel, cmd := m.session.Update(msg)
 	m.session = sessionModel
 	return m, cmd
+}
+
+func (m *Model) handleSolve(msg session.SolvedMsg) {
+	isFirst := m.profile.IsFirstSolve(msg.ChallengeID)
+	m.profile.UpdateStreak()
+
+	timeLimitSecs := 0
+	for _, e := range m.index.Challenges {
+		if e.ID == msg.ChallengeID {
+			break
+		}
+	}
+
+	input := rank.SessionInput{
+		Difficulty:    msg.Difficulty,
+		DurationSecs:  msg.DurationSecs,
+		TimeLimitSecs: timeLimitSecs,
+		TestRuns:      msg.TestRuns,
+		IsFirstSolve:  isFirst,
+		UsedHints:     msg.UsedHints,
+	}
+
+	bd := rank.CalculateSP(input, m.profile.Streak)
+
+	record := profile.SolveRecord{
+		ChallengeID:  msg.ChallengeID,
+		Language:     msg.Language,
+		Timestamp:    time.Now(),
+		Duration:     profile.Duration{Duration: time.Duration(msg.DurationSecs) * time.Second},
+		TestRuns:     msg.TestRuns,
+		Passed:       true,
+		UsedHints:    msg.UsedHints,
+		SPEarned:     bd.TotalSP,
+		Multiplier:   bd.Combined,
+		IsFirstSolve: isFirst,
+	}
+
+	m.profile.Solves = append(m.profile.Solves, record)
+	m.profile.TotalSP += bd.TotalSP
+	ri := rank.Calculate(m.profile.TotalSP)
+	m.profile.CurrentTier = ri.Tier.Name
+	m.profile.CurrentDivision = int(ri.Division)
+	m.profile.EnsureDefaults()
 }
 
 func (m Model) updateProfile(msg tea.Msg) (Model, tea.Cmd) {
@@ -247,6 +309,8 @@ func (m Model) updateProfile(msg tea.Msg) (Model, tea.Cmd) {
 	m.profileV = profileModel
 	return m, cmd
 }
+
+
 
 func (m Model) propagateSize() Model {
 	m.splash = m.splash.SetSize(m.width, m.height)
@@ -312,6 +376,54 @@ func saveProfile(p *profile.Profile) tea.Cmd {
 	return func() tea.Msg {
 		profile.Save(config.ProfilePath(), p)
 		return profileSavedMsg{}
+	}
+}
+
+var appVersion = "dev"
+
+func SetVersion(v string) { appVersion = v }
+
+type friendSyncDoneMsg struct {
+	results []friends.SyncResult
+	meta    friends.SyncMeta
+}
+
+func autoPublish(cfg config.Config, p *profile.Profile, idx *challenge.Index) tea.Cmd {
+	return func() tea.Msg {
+		repoPath := cfg.RepoPath
+		if repoPath == "" {
+			return nil
+		}
+		pub := friends.BuildPublicProfile(p, idx, appVersion)
+		if err := friends.Publish(repoPath, cfg.GitHub.ForkRemote, pub); err != nil {
+			log.Printf("auto-publish failed: %v", err)
+		}
+		return nil
+	}
+}
+
+func syncFriends(cfg config.Config) tea.Cmd {
+	return func() tea.Msg {
+		fl, err := friends.LoadFriends(config.FriendsFilePath())
+		if err != nil || len(fl) == 0 {
+			return friendSyncDoneMsg{}
+		}
+		results := friends.SyncAll(fl)
+		meta := friends.SyncMeta{
+			LastSync: time.Now().UTC(),
+			Results:  make(map[string]friends.FriendMeta),
+		}
+		for _, r := range results {
+			meta.Results[r.Friend.Username] = friends.FriendMeta{
+				Status:    r.Status,
+				FetchedAt: time.Now().UTC(),
+			}
+			if r.Profile != nil {
+				_ = friends.SaveCached(config.DataDir(), r.Friend.Username, *r.Profile)
+			}
+		}
+		_ = friends.SaveMeta(config.DataDir(), meta)
+		return friendSyncDoneMsg{results: results, meta: meta}
 	}
 }
 

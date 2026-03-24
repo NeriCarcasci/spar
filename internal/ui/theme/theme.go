@@ -28,6 +28,19 @@ var (
 	PurpleDim = lipgloss.Color("#1E1A2E")
 
 	HardBg = lipgloss.Color("#2E1A1A")
+
+	RankSpark        = lipgloss.Color("#555555")
+	RankCipher       = lipgloss.Color("#5DCAA5")
+	RankWarden       = lipgloss.Color("#97C459")
+	RankSentinel     = lipgloss.Color("#FBBF24")
+	RankArbiter      = lipgloss.Color("#F0997B")
+	RankSovereign    = lipgloss.Color("#FF3B30")
+	RankMythic       = lipgloss.Color("#FF3B30")
+	RankMythicAccent = lipgloss.Color("#FF6B5E")
+
+	MedalGold   = lipgloss.Color("#FBBF24")
+	MedalSilver = lipgloss.Color("#888888")
+	MedalBronze = lipgloss.Color("#D85A30")
 )
 
 func DifficultyStyle(difficulty string) lipgloss.Style {

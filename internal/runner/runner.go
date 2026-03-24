@@ -11,6 +11,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
 type TestResult struct {
@@ -26,6 +28,14 @@ type languageSpec struct {
 }
 
 func Run(challengeDir, language, userSolution string) ([]TestResult, string, string, error) {
+	return runMode(challengeDir, language, userSolution, false)
+}
+
+func RunVisibleOnly(challengeDir, language, userSolution string) ([]TestResult, string, string, error) {
+	return runMode(challengeDir, language, userSolution, true)
+}
+
+func runMode(challengeDir, language, userSolution string, visibleOnly bool) ([]TestResult, string, string, error) {
 	spec, err := specForLanguage(language)
 	if err != nil {
 		return nil, "", "", err
@@ -57,6 +67,13 @@ func Run(challengeDir, language, userSolution string) ([]TestResult, string, str
 	}
 
 	testsPath := filepath.Join(challengeDir, "tests.yaml")
+	if visibleOnly {
+		filtered, filterErr := filterVisibleTests(testsPath, tmpDir)
+		if filterErr == nil {
+			testsPath = filtered
+		}
+	}
+
 	challengePath := filepath.Join(challengeDir, "challenge.yaml")
 	stdout, stderr, runErr, compileErr, runtimeErr := execute(tmpDir, solutionPath, testsPath, challengePath, normalizeLanguage(language), spec)
 	results := ParseResults(stdout)
@@ -67,6 +84,39 @@ func Run(challengeDir, language, userSolution string) ([]TestResult, string, str
 	}
 
 	return results, "", "", nil
+}
+
+func filterVisibleTests(testsPath, tmpDir string) (string, error) {
+	data, err := os.ReadFile(testsPath)
+	if err != nil {
+		return "", err
+	}
+
+	var raw map[string]interface{}
+	if err := yaml.Unmarshal(data, &raw); err != nil {
+		return "", err
+	}
+
+	visible, ok := raw["visible"]
+	if !ok {
+		return testsPath, nil
+	}
+
+	filtered := map[string]interface{}{
+		"visible": visible,
+		"hidden":  []interface{}{},
+	}
+
+	out, err := yaml.Marshal(filtered)
+	if err != nil {
+		return "", err
+	}
+
+	filteredPath := filepath.Join(tmpDir, "tests.yaml")
+	if err := os.WriteFile(filteredPath, out, 0o644); err != nil {
+		return "", err
+	}
+	return filteredPath, nil
 }
 
 func ParseResults(stdout string) []TestResult {
@@ -190,6 +240,16 @@ func normalizeLanguage(language string) string {
 	}
 }
 
+func normalizeGoPackage(source string) string {
+	if strings.Contains(source, "package main") {
+		return source
+	}
+	if strings.Contains(source, "package ") {
+		return strings.Replace(source, "package solution", "package main", 1)
+	}
+	return "package main\n\n" + source
+}
+
 func executableName(base string) string {
 	if runtime.GOOS == "windows" {
 		return base + ".exe"
@@ -219,12 +279,4 @@ func joinNonEmpty(values ...string) string {
 func atoi(value string) int {
 	n, _ := strconv.Atoi(value)
 	return n
-}
-
-func normalizeGoPackage(source string) string {
-	packageLine := regexp.MustCompile(`(?m)^package\s+[A-Za-z_][A-Za-z0-9_]*`)
-	if packageLine.MatchString(source) {
-		return packageLine.ReplaceAllString(source, "package main")
-	}
-	return "package main\n\n" + source
 }

@@ -11,17 +11,21 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spar-cli/spar/internal/challenge"
 	"github.com/spar-cli/spar/internal/config"
+	"github.com/spar-cli/spar/internal/friends"
 	"github.com/spar-cli/spar/internal/profile"
+	"github.com/spar-cli/spar/internal/rank"
 	"github.com/spar-cli/spar/internal/ui/components"
+	"github.com/spar-cli/spar/internal/ui/leaderboard"
 	"github.com/spar-cli/spar/internal/ui/theme"
 )
 
 const (
-	viewDashboard = "dashboard"
-	viewBrowse    = "browse"
-	viewProfile   = "profile"
-	viewRandom    = "random"
-	viewSettings  = "settings"
+	viewDashboard   = "dashboard"
+	viewBrowse      = "browse"
+	viewProfile     = "profile"
+	viewLeaderboard = "leaderboard"
+	viewRandom      = "random"
+	viewSettings    = "settings"
 )
 
 const sidebarLogo = "╭──╮╭──╮╭──╮╭──╮\n╰──╮╰──╯├──┤├─╮│\n╰──╯╵   ╵  ╵╵ ╰╯"
@@ -32,6 +36,7 @@ type SelectChallengeMsg struct{ Entry challenge.IndexEntry }
 
 type ConfigChangedMsg struct{ Config config.Config }
 type ProfileChangedMsg struct{ Profile *profile.Profile }
+type FriendSyncRequestMsg struct{}
 
 type collection struct {
 	Name   string
@@ -73,6 +78,8 @@ type Model struct {
 	editingName bool
 	nameBuffer  string
 
+	lb leaderboard.Model
+
 	dashSection int
 	dashCursor  int
 	dashStrips  [][]challenge.IndexEntry
@@ -83,6 +90,7 @@ func New(p *profile.Profile, idx *challenge.Index, cfg config.Config) Model {
 		{ID: viewDashboard, Label: "Dashboard", Key: "d"},
 		{ID: viewBrowse, Label: "Browse", Key: "b"},
 		{ID: viewProfile, Label: "Profile", Key: "p"},
+		{ID: viewLeaderboard, Label: "Leaderboard", Key: "l"},
 		{ID: viewRandom, Label: "Random", Key: "r"},
 		{ID: viewSettings, Label: "Settings", Key: "s", Secondary: true},
 		{ID: components.SidebarQuitID, Label: "Quit", Key: "q", Secondary: true},
@@ -95,6 +103,7 @@ func New(p *profile.Profile, idx *challenge.Index, cfg config.Config) Model {
 		statusBar: components.NewStatusBar(),
 		view:      viewDashboard,
 		artFrame:  3,
+		lb:        leaderboard.New(p, cfg),
 	}
 	m.refreshCollections()
 	m.resetSettings()
@@ -124,6 +133,11 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			if m.editingSetting {
 				m.editingSetting = false
 				m.resetSettings()
+				return m, nil
+			}
+			if m.view == viewLeaderboard && m.lb.InSubView() {
+				lbModel, _ := m.lb.Update(msg)
+				m.lb = lbModel
 				return m, nil
 			}
 			m.contentFocused = false
@@ -237,6 +251,13 @@ func (m *Model) handleViewKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 			}
 			return true, startChallenge(entries[m.challengeCur])
 		}
+	case viewLeaderboard:
+		lbModel, lbCmd := m.lb.Update(msg)
+		m.lb = lbModel
+		if lbCmd != nil {
+			return true, translateLBCmd(lbCmd)
+		}
+		return true, nil
 	case viewRandom:
 		switch s {
 		case "left", "h":
@@ -370,7 +391,11 @@ func (m *Model) handleViewKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 	return false, nil
 }
 
-func (m Model) SetSize(width, height int) Model { m.width, m.height = width, height; return m }
+func (m Model) SetSize(width, height int) Model {
+	m.width, m.height = width, height
+	m.lb = m.lb.SetSize(width, height)
+	return m
+}
 func (m Model) View() string {
 	if m.width <= 0 || m.height <= 0 {
 		return ""
@@ -400,7 +425,11 @@ func (m Model) renderContent(width, height int) string {
 		free = 0
 	}
 	if free > 0 {
-		main += "\n" + m.renderArt(innerW, free)
+		if m.view == viewLeaderboard {
+			main += "\n" + leaderboard.RenderArt(innerW, free)
+		} else {
+			main += "\n" + m.renderArt(innerW, free)
+		}
 	}
 	return lipgloss.NewStyle().
 		Width(width).
@@ -415,6 +444,8 @@ func (m Model) renderView(width, height int) string {
 		return m.renderBrowse(width, height)
 	case viewProfile:
 		return m.renderProfile(width)
+	case viewLeaderboard:
+		return m.renderLeaderboard(width, height)
 	case viewRandom:
 		return m.renderRandom(width, height)
 	case viewSettings:
@@ -499,9 +530,14 @@ func (m Model) renderDashboard(width int) string {
 		streakColor = theme.Red
 	}
 
-	statsLine := lipgloss.NewStyle().Foreground(streakColor).Bold(true).Render(formatStreak(streak)+" streak") +
-		"  " + dim.Render(strconv.Itoa(m.profile.TotalSolved())+"/"+strconv.Itoa(len(m.index.Challenges))+" solved") +
-		"  " + dim.Render("avg "+m.avgSolve())
+	ri := rank.Calculate(m.profile.TotalSP)
+	rankIcon := rank.RenderInline(ri.TierIndex)
+	rankName := lipgloss.NewStyle().Foreground(lipgloss.Color(ri.Tier.Color)).Bold(true).Render(rank.FullName(ri))
+	spText := dim.Render(strconv.Itoa(m.profile.TotalSP) + " SP")
+
+	statsLine := rankIcon + " " + rankName + "  " + spText +
+		"  " + lipgloss.NewStyle().Foreground(streakColor).Bold(true).Render(formatStreak(streak)+" streak") +
+		"  " + dim.Render(strconv.Itoa(m.profile.TotalSolved())+"/"+strconv.Itoa(len(m.index.Challenges))+" solved")
 
 	var sections []string
 	sections = append(sections, statsLine, "")
@@ -634,6 +670,52 @@ func (m Model) renderProfile(width int) string {
 
 	header := lipgloss.JoinHorizontal(lipgloss.Center, avatar, "  ", nameDisplay)
 
+	ri := rank.Calculate(m.profile.TotalSP)
+	rankColor := lipgloss.Color(ri.Tier.Color)
+	rankBlock := lipgloss.JoinVertical(lipgloss.Center,
+		rank.RenderIcon(ri.TierIndex),
+		lipgloss.NewStyle().Foreground(rankColor).Bold(true).Render(rank.FullName(ri)),
+		rankProgress(max(16, width/2), ri)+
+			"  "+lipgloss.NewStyle().Foreground(theme.TextDim).Render(strconv.Itoa(m.profile.TotalSP)+" SP"),
+	)
+	if !ri.IsMax {
+		rankBlock += "\n" + lipgloss.NewStyle().Foreground(theme.TextFaint).Render(
+			"next: "+strconv.Itoa(ri.NextSP)+" SP ("+ri.NextName+")")
+	}
+
+	m.profile.EnsureDefaults()
+	var medalParts []string
+	for _, tn := range rank.TrackNames {
+		mt := rank.MedalTier(m.profile.TrackMedals[tn])
+		icon := rank.MedalIcon(mt)
+		var color lipgloss.Color
+		switch mt {
+		case rank.MedalGold:
+			color = theme.MedalGold
+		case rank.MedalSilver:
+			color = theme.MedalSilver
+		case rank.MedalBronze:
+			color = theme.MedalBronze
+		default:
+			color = theme.TextFaint
+		}
+		medalParts = append(medalParts,
+			lipgloss.NewStyle().Foreground(color).Render(icon)+" "+
+				lipgloss.NewStyle().Foreground(theme.TextDim).Render(cutToWidth(tn, 16)))
+	}
+	medalCols := 2
+	medalRows := (len(medalParts) + medalCols - 1) / medalCols
+	var medalLines []string
+	colW := max(20, width/2)
+	for r := 0; r < medalRows; r++ {
+		left := lipgloss.NewStyle().Width(colW).Render(medalParts[r*medalCols])
+		right := ""
+		if r*medalCols+1 < len(medalParts) {
+			right = medalParts[r*medalCols+1]
+		}
+		medalLines = append(medalLines, left+right)
+	}
+
 	e, md, h := m.diffCounts()
 	langs := m.languagePills()
 	cats := m.categoryBars(width)
@@ -651,6 +733,9 @@ func (m Model) renderProfile(width int) string {
 
 	return lipgloss.JoinVertical(lipgloss.Left,
 		header, "",
+		rankBlock, "",
+		sectionHead("Tracks"),
+		strings.Join(medalLines, "\n"),
 		sectionHead("Languages"),
 		langs,
 		sectionHead("Difficulty"),
@@ -662,6 +747,15 @@ func (m Model) renderProfile(width int) string {
 		sectionHead("Categories"),
 		cats,
 	)
+}
+
+func (m Model) renderLeaderboard(width, height int) string {
+	return m.lb.RenderContent(width, height)
+}
+
+func (m Model) HandleFriendSync(results []friends.SyncResult, meta friends.SyncMeta) Model {
+	m.lb = m.lb.WithFriendData(results, meta)
+	return m
 }
 
 func (m Model) renderRandom(width, height int) string {
@@ -857,6 +951,8 @@ func (m Model) mode() string {
 		name = "BROWSE"
 	case viewProfile:
 		name = "PROFILE"
+	case viewLeaderboard:
+		name = "LEADERBOARD"
 	case viewRandom:
 		name = "RANDOM"
 	case viewSettings:
@@ -876,6 +972,9 @@ func (m Model) hints() []components.KeyHint {
 		}
 		if m.view == viewBrowse {
 			return append(base, components.KeyHint{Key: "arrows", Description: "navigate"}, components.KeyHint{Key: "enter", Description: "open"})
+		}
+		if m.view == viewLeaderboard {
+			return m.lb.CurrentHints()
 		}
 		if m.view == viewRandom {
 			return append(base, components.KeyHint{Key: "left/right", Description: "filter"}, components.KeyHint{Key: "enter", Description: "start"})
@@ -924,7 +1023,7 @@ func (m Model) browseVisibleHeight() int {
 }
 
 func shortcut(k string) bool {
-	return k == "d" || k == "b" || k == "p" || k == "r" || k == "s" || k == "q"
+	return k == "d" || k == "b" || k == "p" || k == "l" || k == "r" || k == "s" || k == "q"
 }
 func animateArtTick() tea.Cmd {
 	return tea.Tick(90*time.Millisecond, func(time.Time) tea.Msg { return artTickMsg{} })
@@ -932,6 +1031,16 @@ func animateArtTick() tea.Cmd {
 func startChallenge(e challenge.IndexEntry) tea.Cmd {
 	return func() tea.Msg { return SelectChallengeMsg{Entry: e} }
 }
+func translateLBCmd(cmd tea.Cmd) tea.Cmd {
+	return func() tea.Msg {
+		msg := cmd()
+		if _, ok := msg.(leaderboard.SyncRequestMsg); ok {
+			return FriendSyncRequestMsg{}
+		}
+		return msg
+	}
+}
+
 func configChanged(cfg config.Config) tea.Cmd {
 	return func() tea.Msg { return ConfigChangedMsg{Config: cfg} }
 }
@@ -1220,6 +1329,19 @@ func progress(width, solved, total int) string {
 	}
 	return lipgloss.NewStyle().Foreground(theme.Red).Render(strings.Repeat("=", fill)) +
 		lipgloss.NewStyle().Foreground(theme.Surface2).Render(strings.Repeat("=", width-fill))
+}
+
+func rankProgress(width int, ri rank.RankInfo) string {
+	if width <= 0 {
+		return ""
+	}
+	fill := int(ri.Progress * float64(width))
+	if fill > width {
+		fill = width
+	}
+	color := lipgloss.Color(ri.Tier.Color)
+	return lipgloss.NewStyle().Foreground(color).Render(strings.Repeat("█", fill)) +
+		lipgloss.NewStyle().Foreground(theme.Surface2).Render(strings.Repeat("░", width-fill))
 }
 
 func formatStreak(days int) string {

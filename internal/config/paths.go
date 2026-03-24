@@ -32,6 +32,14 @@ func SessionsDir() string {
 	return filepath.Join(DataDir(), "sessions")
 }
 
+func FriendsFilePath() string {
+	return filepath.Join(ConfigDir(), "friends.yaml")
+}
+
+func FriendsCacheDir() string {
+	return filepath.Join(DataDir(), "friends")
+}
+
 func ConfigFilePath() string {
 	return filepath.Join(ConfigDir(), "config.yaml")
 }
@@ -42,6 +50,7 @@ func EnsureDirectories() error {
 		AuthDir(),
 		DataDir(),
 		SessionsDir(),
+		FriendsCacheDir(),
 	}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0o755); err != nil {

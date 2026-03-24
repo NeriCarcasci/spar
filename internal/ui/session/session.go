@@ -26,6 +26,16 @@ const (
 type NavigateBrowserMsg struct{}
 type clearSavedMsg struct{}
 
+type SolvedMsg struct {
+	ChallengeID  string
+	Language     string
+	DurationSecs int
+	TestRuns     int
+	UsedHints    bool
+	Difficulty   string
+}
+
+
 type SavedMsg struct {
 	Language string
 	Err      error
@@ -37,6 +47,7 @@ type runDoneMsg struct {
 	runtimeErr string
 	err        error
 	duration   time.Duration
+	isSubmit   bool
 }
 
 type chatRole int
@@ -65,6 +76,8 @@ type Model struct {
 	picking   bool
 	running   bool
 	saved     bool
+	testRuns  int
+	startTime time.Time
 
 	editor textarea.Model
 	viewer viewport.Model
@@ -128,6 +141,7 @@ func New(ch *challenge.Challenge, language string) Model {
 		activeTab:    tabChallenge,
 		editor:       editor,
 		viewer:       vp,
+		startTime:    time.Now(),
 		chatInput:    chatIn,
 		chatMessages: []chatMessage{intro},
 		chatView:     chatVP,
@@ -180,6 +194,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 
 	case runDoneMsg:
 		m.running = false
+		m.testRuns++
 		m.results = msg.results
 		m.compileErr = msg.compileErr
 		m.runtimeErr = msg.runtimeErr
@@ -189,6 +204,34 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		m.chatMessages = append(m.chatMessages, chatMessage{Role: roleSystem, Content: summary})
 		m.refreshChat()
 		m.statusBar = m.statusBar.WithHints(sessionHints(m.activeTab))
+
+		if msg.isSubmit {
+			allPassed := len(msg.results) > 0 && msg.err == nil && msg.compileErr == "" && msg.runtimeErr == ""
+			if allPassed {
+				for _, r := range msg.results {
+					if !r.Passed {
+						allPassed = false
+						break
+					}
+				}
+			}
+			if allPassed {
+				elapsed := int(time.Since(m.startTime).Seconds())
+				m.chatMessages = append(m.chatMessages, chatMessage{Role: roleInterviewer, Content: "All tests passed — submission accepted!"})
+				m.refreshChat()
+				return m, func() tea.Msg {
+					return SolvedMsg{
+						ChallengeID:  m.challenge.ID,
+						Language:     m.language,
+						DurationSecs: elapsed,
+						TestRuns:     m.testRuns,
+						Difficulty:   string(m.challenge.Difficulty),
+					}
+				}
+			}
+			m.chatMessages = append(m.chatMessages, chatMessage{Role: roleInterviewer, Content: "Some tests failed. Review the results above and try again."})
+			m.refreshChat()
+		}
 		return m, nil
 
 	case tea.KeyMsg:
@@ -227,9 +270,9 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			m.refreshChat()
 			m.statusBar = m.statusBar.WithHints(sessionHints(m.activeTab))
 			if m.dirty {
-				return m, tea.Batch(m.saveCode(), m.runTests())
+				return m, tea.Batch(m.saveCode(), m.runVisibleTests())
 			}
-			return m, m.runTests()
+			return m, m.runVisibleTests()
 
 		case "f1":
 			return m.switchTab(tabChallenge)
@@ -270,19 +313,21 @@ func (m *Model) updateChat(msg tea.Msg) tea.Cmd {
 			m.chatMessages = append(m.chatMessages, chatMessage{Role: roleSystem, Content: "Running tests..."})
 			m.refreshChat()
 			if m.dirty {
-				return tea.Batch(m.saveCode(), m.runTests())
+				return tea.Batch(m.saveCode(), m.runVisibleTests())
 			}
-			return m.runTests()
+			return m.runVisibleTests()
 		}
 
 		if text == "/submit" {
 			m.chatMessages = append(m.chatMessages, chatMessage{Role: roleUser, Content: text})
 			m.chatMessages = append(m.chatMessages, chatMessage{Role: roleInterviewer,
-				Content: "Let me review your solution...\n\n" +
-					"[AI review will be available when an AI provider is configured in Settings. " +
-					"For now, use /run to test against the test cases.]"})
+				Content: "Submitting your solution — running all tests (visible + hidden)..."})
+			m.running = true
 			m.refreshChat()
-			return nil
+			if m.dirty {
+				return tea.Batch(m.saveCode(), m.runAllTests())
+			}
+			return m.runAllTests()
 		}
 
 		m.chatMessages = append(m.chatMessages, chatMessage{Role: roleUser, Content: text})
@@ -577,7 +622,25 @@ func (m Model) challengeContent(width int) string {
 	return strings.Join(sections, "\n")
 }
 
-func (m Model) runTests() tea.Cmd {
+func (m Model) runVisibleTests() tea.Cmd {
+	chDir := m.challenge.Path
+	lang := m.language
+	code := m.editor.Value()
+	return func() tea.Msg {
+		start := time.Now()
+		results, compileErr, runtimeErr, err := runner.RunVisibleOnly(chDir, lang, code)
+		return runDoneMsg{
+			results:    results,
+			compileErr: compileErr,
+			runtimeErr: runtimeErr,
+			err:        err,
+			duration:   time.Since(start),
+			isSubmit:   false,
+		}
+	}
+}
+
+func (m Model) runAllTests() tea.Cmd {
 	chDir := m.challenge.Path
 	lang := m.language
 	code := m.editor.Value()
@@ -590,6 +653,7 @@ func (m Model) runTests() tea.Cmd {
 			runtimeErr: runtimeErr,
 			err:        err,
 			duration:   time.Since(start),
+			isSubmit:   true,
 		}
 	}
 }
@@ -621,18 +685,25 @@ func (m Model) buildRunSummary(msg runDoneMsg) string {
 		}
 	}
 
+	label := "Run"
+	if msg.isSubmit {
+		label = "Submit"
+	}
+
 	var b strings.Builder
 	for _, r := range msg.results {
 		if r.Passed {
 			b.WriteString(fmt.Sprintf("  ✓ Test %d passed\n", r.Index))
 		} else {
-			b.WriteString(fmt.Sprintf("  ✗ Test %d failed — got %s, expected %s\n", r.Index, r.Got, r.Expected))
+			b.WriteString(fmt.Sprintf("  ✗ Test %d failed\n", r.Index))
+			b.WriteString(fmt.Sprintf("      got:      %s\n", r.Got))
+			b.WriteString(fmt.Sprintf("      expected: %s\n", r.Expected))
 		}
 	}
 
-	status := fmt.Sprintf("Results: %d/%d passed (%s)", passed, total, msg.duration.Round(time.Millisecond))
+	status := fmt.Sprintf("%s: %d/%d passed (%s)", label, passed, total, msg.duration.Round(time.Millisecond))
 	if passed == total {
-		status = fmt.Sprintf("All %d tests passed! (%s) 🎉", total, msg.duration.Round(time.Millisecond))
+		status = fmt.Sprintf("%s: All %d tests passed! (%s)", label, total, msg.duration.Round(time.Millisecond))
 	}
 
 	return status + "\n" + b.String()
