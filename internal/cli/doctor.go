@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/spf13/viper"
+	"github.com/NeriCarcasci/spar/internal/ai/auth"
 	"github.com/NeriCarcasci/spar/internal/config"
 )
 
@@ -27,7 +28,7 @@ func RunDoctor() {
 	results = append(results, checkConfigFile())
 	results = append(results, checkProvider(cfg, cfgErr))
 	results = append(results, checkModel(cfg, cfgErr))
-	results = append(results, checkAPIKey(cfg, cfgErr))
+	results = append(results, checkAuth(cfg, cfgErr)...)
 	results = append(results, checkConnectivity(cfg, cfgErr))
 
 	issues := 0
@@ -53,11 +54,9 @@ func RunDoctor() {
 }
 
 func checkConfigFile() checkResult {
-	path := config.ConfigFilePath()
 	if _, err := config.Load(); err != nil {
 		return checkResult{name: "Config file", ok: false, detail: "error: " + err.Error(), remedy: "Run \"spar setup\" to create configuration."}
 	}
-	_ = path
 	return checkResult{name: "Config file", ok: true, detail: "found"}
 }
 
@@ -93,27 +92,67 @@ func checkModel(cfg config.Config, cfgErr error) checkResult {
 	return checkResult{name: "Model", ok: true, detail: model}
 }
 
-func checkAPIKey(cfg config.Config, cfgErr error) checkResult {
+func checkAuth(cfg config.Config, cfgErr error) []checkResult {
 	if cfgErr != nil {
-		return checkResult{name: "API key", ok: false, detail: "config error"}
-	}
-	p := cfg.AIProvider
-	if p == "" || p == "none" {
-		return checkResult{name: "API key", ok: false, detail: "skipped (no provider)"}
+		return []checkResult{{name: "Authentication", ok: false, detail: "config error"}}
 	}
 
+	switch auth.ProviderType(cfg.AIProvider) {
+	case auth.ProviderOpenAIOAuth:
+		return checkOAuthAuth()
+	case auth.ProviderOpenAIKey, auth.ProviderAnthropicKey, auth.ProviderOpenRouterKey:
+		return checkAPIKeyAuth()
+	default:
+		return []checkResult{{name: "Authentication", ok: false, detail: "provider disabled", remedy: "Run \"spar setup\" to configure a provider."}}
+	}
+}
+
+func checkOAuthAuth() []checkResult {
+	client := auth.NewOAuthClient()
+
+	if !client.IsAuthenticated() {
+		return []checkResult{{
+			name:   "Authentication",
+			ok:     false,
+			detail: "not authenticated",
+			remedy: "Run \"spar login\" to authenticate with OpenAI.",
+		}}
+	}
+
+	expires := client.TokenExpiresAt()
+	if expires.IsZero() {
+		return []checkResult{{name: "Authentication", ok: true, detail: "OAuth token present"}}
+	}
+
+	remaining := time.Until(expires)
+	if remaining > 0 {
+		return []checkResult{{
+			name:   "Authentication",
+			ok:     true,
+			detail: fmt.Sprintf("OAuth token valid (expires in %d min)", int(remaining.Minutes())),
+		}}
+	}
+
+	return []checkResult{{
+		name:   "Authentication",
+		ok:     false,
+		detail: "OAuth token expired",
+		remedy: "Token will auto-refresh on next API call, or run \"spar login\".",
+	}}
+}
+
+func checkAPIKeyAuth() []checkResult {
 	key := viper.GetString("ai_api_key")
 	if key == "" {
-		return checkResult{
-			name:   "API key",
+		return []checkResult{{
+			name:   "Authentication",
 			ok:     false,
-			detail: "not configured",
+			detail: "no API key configured",
 			remedy: "Run \"spar setup\" to set your API key.",
-		}
+		}}
 	}
-
 	masked := key[:4] + "..." + key[len(key)-4:]
-	return checkResult{name: "API key", ok: true, detail: "present (" + masked + ")"}
+	return []checkResult{{name: "Authentication", ok: true, detail: "API key present (" + masked + ")"}}
 }
 
 func checkConnectivity(cfg config.Config, cfgErr error) checkResult {
@@ -121,14 +160,33 @@ func checkConnectivity(cfg config.Config, cfgErr error) checkResult {
 		return checkResult{name: "API connectivity", ok: false, detail: "skipped (config error)"}
 	}
 
-	key := viper.GetString("ai_api_key")
-	if key == "" {
-		return checkResult{name: "API connectivity", ok: false, detail: "skipped (no API key)"}
-	}
+	providerType := auth.ProviderType(cfg.AIProvider)
 
-	baseURL := providerBaseURL(cfg.AIProvider)
-	if baseURL == "" {
-		return checkResult{name: "API connectivity", ok: false, detail: "unknown provider"}
+	var bearerToken string
+	var baseURL string
+
+	switch providerType {
+	case auth.ProviderOpenAIOAuth:
+		client := auth.NewOAuthClient()
+		if !client.IsAuthenticated() {
+			return checkResult{name: "API connectivity", ok: false, detail: "skipped (not authenticated)"}
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		token, err := client.GetAccessToken(ctx)
+		if err != nil {
+			return checkResult{name: "API connectivity", ok: false, detail: "skipped (token error)"}
+		}
+		bearerToken = token
+		baseURL = "https://api.openai.com/v1"
+	case auth.ProviderOpenAIKey, auth.ProviderAnthropicKey, auth.ProviderOpenRouterKey:
+		bearerToken = viper.GetString("ai_api_key")
+		if bearerToken == "" {
+			return checkResult{name: "API connectivity", ok: false, detail: "skipped (no API key)"}
+		}
+		baseURL = providerBaseURL(cfg.AIProvider)
+	default:
+		return checkResult{name: "API connectivity", ok: false, detail: "skipped (provider disabled)"}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -138,16 +196,11 @@ func checkConnectivity(cfg config.Config, cfgErr error) checkResult {
 	if err != nil {
 		return checkResult{name: "API connectivity", ok: false, detail: err.Error()}
 	}
-	req.Header.Set("Authorization", "Bearer "+key)
+	req.Header.Set("Authorization", "Bearer "+bearerToken)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return checkResult{
-			name:   "API connectivity",
-			ok:     false,
-			detail: "unreachable",
-			remedy: "Check your internet connection.",
-		}
+		return checkResult{name: "API connectivity", ok: false, detail: "unreachable", remedy: "Check your internet connection."}
 	}
 	defer resp.Body.Close()
 
@@ -159,23 +212,19 @@ func checkConnectivity(cfg config.Config, cfgErr error) checkResult {
 			name:   "API connectivity",
 			ok:     false,
 			detail: "unauthorized (401)",
-			remedy: "Your API key may be invalid. Run \"spar setup\" to reconfigure.",
+			remedy: "Your credentials may be invalid. Run \"spar setup\".",
 		}
 	}
-	return checkResult{
-		name:   "API connectivity",
-		ok:     false,
-		detail: fmt.Sprintf("unexpected status: %d", resp.StatusCode),
-	}
+	return checkResult{name: "API connectivity", ok: false, detail: fmt.Sprintf("unexpected status: %d", resp.StatusCode)}
 }
 
 func providerBaseURL(provider string) string {
 	switch provider {
-	case "openai":
+	case "openai-key":
 		return "https://api.openai.com/v1"
-	case "anthropic":
+	case "anthropic-key":
 		return "https://api.anthropic.com/v1"
-	case "openrouter":
+	case "openrouter-key":
 		return "https://openrouter.ai/api/v1"
 	default:
 		return ""

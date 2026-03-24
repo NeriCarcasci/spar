@@ -1,10 +1,13 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/spf13/viper"
+	"github.com/NeriCarcasci/spar/internal/ai/auth"
 	"github.com/NeriCarcasci/spar/internal/config"
 )
 
@@ -17,8 +20,9 @@ func RunSetup() {
 	fmt.Println()
 
 	choice := PromptChoice("Choose your AI provider:", []string{
+		"OpenAI (ChatGPT account — recommended, no API key needed)",
 		"OpenAI (API key)",
-		"Anthropic (API key — recommended)",
+		"Anthropic (API key)",
 		"OpenRouter (API key)",
 		"Skip — disable AI features",
 	})
@@ -30,12 +34,14 @@ func RunSetup() {
 
 	switch choice {
 	case 1:
-		setupAPIKey("openai", "gpt-4o")
+		setupOAuth()
 	case 2:
-		setupAPIKey("anthropic", "claude-sonnet-4-20250514")
+		setupAPIKey("openai-key", "gpt-4o")
 	case 3:
-		setupAPIKey("openrouter", "gpt-4o")
+		setupAPIKey("anthropic-key", "claude-sonnet-4-20250514")
 	case 4:
+		setupAPIKey("openrouter-key", "gpt-4o")
+	case 5:
 		viper.Set("ai_provider", "none")
 		viper.Set("ai_api_key", "")
 		saveConfig()
@@ -51,6 +57,35 @@ func RunSetup() {
 	fmt.Println(hintStyle.Render("Run \"spar doctor\" to verify your setup."))
 }
 
+func setupOAuth() {
+	viper.Set("ai_provider", string(auth.ProviderOpenAIOAuth))
+	viper.Set("ai_api_key", "")
+
+	fmt.Println()
+	model := PromptString("Choose model:", "gpt-4o")
+	viper.Set("ai_model", model)
+
+	saveConfig()
+
+	fmt.Println()
+	fmt.Println(hintStyle.Render("Opening browser for OpenAI authentication..."))
+
+	client := auth.NewOAuthClient()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	if err := client.Login(ctx); err != nil {
+		PrintError("Login failed: %v", err)
+		fmt.Println(hintStyle.Render("You can try again with \"spar login\"."))
+		return
+	}
+
+	expires := client.TokenExpiresAt()
+	fmt.Println()
+	PrintSuccess("Authenticated successfully")
+	fmt.Printf("  %s\n", dimStyle.Render("Token expires: "+expires.Format(time.RFC822)))
+}
+
 func setupAPIKey(provider, defaultModel string) {
 	viper.Set("ai_provider", provider)
 
@@ -59,7 +94,7 @@ func setupAPIKey(provider, defaultModel string) {
 	viper.Set("ai_model", model)
 
 	fmt.Println()
-	key := PromptSecret(fmt.Sprintf("Enter your %s API key:", provider))
+	key := PromptSecret(fmt.Sprintf("Enter your API key:"))
 	if key == "" {
 		PrintError("No API key provided. Run \"spar setup\" again to configure.")
 		os.Exit(1)
