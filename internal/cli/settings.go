@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/viper"
-	"github.com/NeriCarcasci/spar/internal/ai/auth"
 	"github.com/NeriCarcasci/spar/internal/config"
 )
 
@@ -80,7 +79,6 @@ func RunSettingsReset() {
 
 func changeProvider() {
 	choice := PromptChoice("Choose your AI provider:", []string{
-		"OpenAI (ChatGPT account — OAuth, no API key needed)",
 		"OpenAI (API key)",
 		"Anthropic (API key)",
 		"OpenRouter (API key)",
@@ -89,29 +87,22 @@ func changeProvider() {
 
 	switch choice {
 	case 1:
-		viper.Set("ai_provider", string(auth.ProviderOpenAIOAuth))
-		viper.Set("ai_api_key", "")
-		saveConfig()
-		fmt.Println()
-		fmt.Println(hintStyle.Render("Run \"spar login\" to authenticate with OpenAI."))
-		return
-	case 2:
-		viper.Set("ai_provider", string(auth.ProviderOpenAIKey))
+		viper.Set("ai_provider", "openai-key")
 		fmt.Println()
 		key := PromptSecret("Enter your OpenAI API key:")
 		viper.Set("ai_api_key", key)
-	case 3:
-		viper.Set("ai_provider", string(auth.ProviderAnthropicKey))
+	case 2:
+		viper.Set("ai_provider", "anthropic-key")
 		fmt.Println()
 		key := PromptSecret("Enter your Anthropic API key:")
 		viper.Set("ai_api_key", key)
-	case 4:
-		viper.Set("ai_provider", string(auth.ProviderOpenRouterKey))
+	case 3:
+		viper.Set("ai_provider", "openrouter-key")
 		fmt.Println()
 		key := PromptSecret("Enter your OpenRouter API key:")
 		viper.Set("ai_api_key", key)
-	case 5:
-		viper.Set("ai_provider", string(auth.ProviderNone))
+	case 4:
+		viper.Set("ai_provider", "none")
 		viper.Set("ai_api_key", "")
 	}
 }

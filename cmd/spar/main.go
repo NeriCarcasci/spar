@@ -51,12 +51,6 @@ func main() {
 		case "update":
 			cli.RunUpdate()
 			return
-		case "login":
-			cli.RunLogin()
-			return
-		case "logout":
-			cli.RunLogout()
-			return
 		case "publish":
 			runPublish()
 			return
@@ -159,8 +153,6 @@ func printUsage() {
 	fmt.Println("  " + sub.Render("settings") + "         " + desc.Render("View and change settings"))
 	fmt.Println("  " + sub.Render("settings reset") + "   " + desc.Render("Delete all configuration and tokens"))
 	fmt.Println("  " + sub.Render("update") + "           " + desc.Render("Update spar to the latest version"))
-	fmt.Println("  " + sub.Render("login") + "            " + desc.Render("Authenticate with OpenAI (OAuth)"))
-	fmt.Println("  " + sub.Render("logout") + "           " + desc.Render("Remove stored OAuth tokens"))
 	fmt.Println("  " + sub.Render("publish") + "          " + desc.Render("Publish profile to GitHub"))
 	fmt.Println("  " + sub.Render("friend") + "           " + desc.Render("Manage friends (add/remove/list/sync)"))
 	fmt.Println("  " + sub.Render("validate") + "         " + desc.Render("Validate challenge structure"))
