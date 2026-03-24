@@ -57,7 +57,7 @@ func (s StatusBar) View() string {
 
 	separatorStyle := lipgloss.NewStyle().Foreground(theme.TextFaint)
 	barStyle := lipgloss.NewStyle().
-		Background(theme.Background).
+		Background(theme.Surface).
 		Width(s.width)
 
 	modeSection := modeStyle.Render(strings.ToUpper(s.mode))

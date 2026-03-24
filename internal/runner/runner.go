@@ -30,6 +30,10 @@ func Run(challengeDir, language, userSolution string) ([]TestResult, string, str
 	if err != nil {
 		return nil, "", "", err
 	}
+	challengeDir, err = filepath.Abs(challengeDir)
+	if err != nil {
+		return nil, "", "", err
+	}
 
 	tmpDir, err := os.MkdirTemp("", "spar-run-*")
 	if err != nil {
@@ -38,7 +42,11 @@ func Run(challengeDir, language, userSolution string) ([]TestResult, string, str
 	defer os.RemoveAll(tmpDir)
 
 	solutionPath := filepath.Join(tmpDir, spec.SolutionFile)
-	if err := os.WriteFile(solutionPath, []byte(userSolution), 0o644); err != nil {
+	solutionContent := userSolution
+	if normalizeLanguage(language) == "go" {
+		solutionContent = normalizeGoPackage(userSolution)
+	}
+	if err := os.WriteFile(solutionPath, []byte(solutionContent), 0o644); err != nil {
 		return nil, "", "", err
 	}
 
@@ -93,7 +101,7 @@ func execute(tmpDir, solutionPath, testsPath, challengePath, language string, sp
 		}
 		return stdout, stderr, runErr, compileErr, runtimeErr
 	case "go":
-		return runCmd(tmpDir, "go", "run", spec.BuilderFile, spec.SolutionFile, testsPath, challengePath)
+		return runCmd(tmpDir, "go", "run", spec.BuilderFile, spec.SolutionFile, "solution", testsPath, challengePath)
 	case "javascript":
 		return runCmd(tmpDir, "node", spec.BuilderFile, solutionPath, testsPath, challengePath)
 	case "cpp":
@@ -211,4 +219,12 @@ func joinNonEmpty(values ...string) string {
 func atoi(value string) int {
 	n, _ := strconv.Atoi(value)
 	return n
+}
+
+func normalizeGoPackage(source string) string {
+	packageLine := regexp.MustCompile(`(?m)^package\s+[A-Za-z_][A-Za-z0-9_]*`)
+	if packageLine.MatchString(source) {
+		return packageLine.ReplaceAllString(source, "package main")
+	}
+	return "package main\n\n" + source
 }

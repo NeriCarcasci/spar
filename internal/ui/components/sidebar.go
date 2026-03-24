@@ -88,57 +88,74 @@ func (s Sidebar) Update(msg tea.Msg) (Sidebar, SidebarEvent) {
 	return s, event
 }
 
-func (s Sidebar) View(width, height int, logo string) string {
+func (s Sidebar) View(width, height int, logo string, focused bool) string {
 	if width <= 0 || height <= 0 {
 		return ""
 	}
 
-	mainItems, secondaryItems := splitItems(s.items)
-	innerWidth := width - 3
-	if innerWidth < 8 {
-		innerWidth = 8
+	borderColor := theme.Border
+	if focused {
+		borderColor = theme.Red
 	}
+	borderStyle := lipgloss.NewStyle().Foreground(borderColor)
+	borderChar := borderStyle.Render("│")
+
+	itemWidth := width - 3
+	if itemWidth < 6 {
+		itemWidth = 6
+	}
+
+	mainItems, secondaryItems := splitItems(s.items)
 
 	logoStyle := lipgloss.NewStyle().
 		Foreground(theme.Red).
 		Bold(true)
 
-	main := renderItems(mainItems, s, innerWidth)
-	secondary := renderItems(secondaryItems, s, innerWidth)
+	main := renderItems(mainItems, s, itemWidth)
+	secondary := renderItems(secondaryItems, s, itemWidth)
 
-	separator := lipgloss.NewStyle().
-		Foreground(theme.Border).
-		Render(strings.Repeat("-", innerWidth))
+	sep := borderStyle.Render(strings.Repeat("─", itemWidth))
 
 	logoBlock := logoStyle.Render(logo)
 	logoLines := lipgloss.Height(logoBlock) + 1
 	mainLines := max(1, len(mainItems))
 	secondaryLines := 1 + max(1, len(secondaryItems))
 
-	contentHeight := max(1, height-2)
-	gapLines := contentHeight - logoLines - mainLines - secondaryLines
-	if gapLines < 1 {
-		gapLines = 1
+	usable := max(1, height-2)
+	gap := usable - logoLines - mainLines - secondaryLines
+	if gap < 1 {
+		gap = 1
 	}
 
 	content := strings.Join([]string{
 		logoBlock,
 		"",
 		main,
-		blankLines(gapLines),
-		separator,
+		blankLines(gap),
+		sep,
 		secondary,
 	}, "\n")
 
-	container := lipgloss.NewStyle().
-		Width(width).
-		Height(height).
-		Padding(1, 1).
-		Background(theme.Background).
-		Border(lipgloss.NormalBorder(), false, true, false, false).
-		BorderForeground(theme.Border)
+	padWidth := width - 2
+	lines := strings.Split(content, "\n")
+	out := make([]string, 0, height)
 
-	return container.Render(content)
+	out = append(out, strings.Repeat(" ", padWidth)+borderChar)
+
+	for _, line := range lines {
+		rendered := " " + lipgloss.NewStyle().Width(padWidth-1).MaxWidth(padWidth-1).Inline(true).Render(line) + borderChar
+		out = append(out, rendered)
+	}
+
+	empty := strings.Repeat(" ", padWidth) + borderChar
+	for len(out) < height {
+		out = append(out, empty)
+	}
+	if len(out) > height {
+		out = out[:height]
+	}
+
+	return strings.Join(out, "\n")
 }
 
 func (s *Sidebar) selectByID(id string) SidebarEvent {
@@ -194,10 +211,10 @@ func renderItemLine(item SidebarItem, width int, isSelected bool, isCursor bool)
 	indicator := " "
 	textStyle := lipgloss.NewStyle().Foreground(theme.TextDim)
 	keyStyle := lipgloss.NewStyle().Foreground(theme.TextFaint)
-	lineStyle := lipgloss.NewStyle().Padding(0, 1)
+	lineStyle := lipgloss.NewStyle()
 
 	if isSelected {
-		indicator = lipgloss.NewStyle().Foreground(theme.Red).Render(">")
+		indicator = lipgloss.NewStyle().Foreground(theme.Red).Render("›")
 		textStyle = textStyle.Foreground(theme.TextPrimary)
 		keyStyle = keyStyle.Foreground(theme.TextDim)
 		lineStyle = lineStyle.Background(theme.Surface2)
@@ -206,7 +223,11 @@ func renderItemLine(item SidebarItem, width int, isSelected bool, isCursor bool)
 		lineStyle = lineStyle.Background(theme.Surface)
 	}
 
-	label := textStyle.Render(cutToWidth(item.Label, width-8))
+	maxLabel := width - 6
+	if maxLabel < 4 {
+		maxLabel = 4
+	}
+	label := textStyle.Render(cutToWidth(item.Label, maxLabel))
 	key := keyStyle.Render(item.Key)
 	left := indicator + " " + label
 	spaceCount := width - lipgloss.Width(left) - lipgloss.Width(key)

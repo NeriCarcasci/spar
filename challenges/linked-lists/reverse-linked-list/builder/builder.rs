@@ -1,4 +1,1 @@
-fn main() {
-    eprintln!("builder not implemented");
-    std::process::exit(1);
-}
+fn main() { eprintln!("builder not implemented"); std::process::exit(1); }

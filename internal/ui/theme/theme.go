@@ -66,9 +66,7 @@ func CategoryBadge() lipgloss.Style {
 
 func LanguageBadge() lipgloss.Style {
 	return lipgloss.NewStyle().
-		Foreground(TextMid).
+		Foreground(TextPrimary).
 		Background(Surface2).
-		Border(lipgloss.NormalBorder()).
-		BorderForeground(Border).
 		Padding(0, 1)
 }

@@ -1,2 +1,2 @@
 def valid_tree(n: int, edges: list[list[int]]) -> bool:
-    pass
+    return 6

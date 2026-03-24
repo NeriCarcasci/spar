@@ -166,9 +166,16 @@ func (m Model) renderRow(index int) string {
 		solvedMark = lipgloss.NewStyle().Foreground(theme.Green).Render("✓")
 	}
 
+	titleWidth := m.width - 24
+	if titleWidth < 12 {
+		titleWidth = 12
+	}
+	if titleWidth > 40 {
+		titleWidth = 40
+	}
 	return prefix + solvedMark + " " +
 		diffBadge + " " +
-		titleStyle.Render(padRight(entry.Title, 30)) + " " +
+		titleStyle.Render(padRight(entry.Title, titleWidth)) + " " +
 		categoryBadge
 }
 
@@ -190,8 +197,13 @@ func navigateDashboard() tea.Msg {
 }
 
 func padRight(s string, width int) string {
-	if len(s) >= width {
-		return s
+	w := lipgloss.Width(s)
+	if w >= width {
+		runes := []rune(s)
+		for len(runes) > 0 && lipgloss.Width(string(runes)) > width {
+			runes = runes[:len(runes)-1]
+		}
+		return string(runes)
 	}
-	return s + strings.Repeat(" ", width-len(s))
+	return s + strings.Repeat(" ", width-w)
 }

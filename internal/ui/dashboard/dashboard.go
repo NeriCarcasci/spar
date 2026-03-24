@@ -24,13 +24,14 @@ const (
 	viewSettings  = "settings"
 )
 
-const sidebarLogo = "SPAR\n----"
+const sidebarLogo = "╭──╮╭──╮╭──╮╭──╮\n╰──╮╰──╯├──┤├─╮│\n╰──╯╵   ╵  ╵╵ ╰╯"
 
 type artTickMsg struct{}
 
 type SelectChallengeMsg struct{ Entry challenge.IndexEntry }
 
 type ConfigChangedMsg struct{ Config config.Config }
+type ProfileChangedMsg struct{ Profile *profile.Profile }
 
 type collection struct {
 	Name   string
@@ -46,14 +47,15 @@ type setting struct {
 }
 
 type Model struct {
-	width, height int
-	profile       *profile.Profile
-	index         *challenge.Index
-	cfg           config.Config
-	sidebar       components.Sidebar
-	statusBar     components.StatusBar
-	view          string
-	artFrame      int
+	width, height  int
+	profile        *profile.Profile
+	index          *challenge.Index
+	cfg            config.Config
+	sidebar        components.Sidebar
+	statusBar      components.StatusBar
+	view           string
+	artFrame       int
+	contentFocused bool
 
 	collections   []collection
 	browseCursor  int
@@ -67,6 +69,9 @@ type Model struct {
 	settings       []setting
 	settingCur     int
 	editingSetting bool
+
+	editingName bool
+	nameBuffer  string
 }
 
 func New(p *profile.Profile, idx *challenge.Index, cfg config.Config) Model {
@@ -103,15 +108,36 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		}
 		return m, nil
 	case tea.KeyMsg:
-		if shortcut(msg.String()) {
+		if msg.String() == "tab" {
+			m.contentFocused = !m.contentFocused
+			return m, nil
+		}
+		if msg.String() == "esc" && m.contentFocused {
+			if m.browseOpen {
+				m.browseOpen = false
+				return m, nil
+			}
+			if m.editingSetting {
+				m.editingSetting = false
+				m.resetSettings()
+				return m, nil
+			}
+			m.contentFocused = false
+			return m, nil
+		}
+		if !m.contentFocused {
 			return m.applySidebar(msg)
 		}
 		if handled, cmd := m.handleViewKey(msg); handled {
 			return m, cmd
 		}
-		return m.applySidebar(msg)
+		if shortcut(msg.String()) {
+			m.contentFocused = false
+			return m.applySidebar(msg)
+		}
+		return m, nil
 	}
-	return m.applySidebar(msg)
+	return m, nil
 }
 
 func (m Model) applySidebar(msg tea.Msg) (Model, tea.Cmd) {
@@ -127,8 +153,12 @@ func (m Model) applySidebar(msg tea.Msg) (Model, tea.Cmd) {
 	if ev.SelectedChanged {
 		m.browseOpen = false
 		m.editingSetting = false
+		m.contentFocused = false
 		m.artFrame = 0
 		return m, animateArtTick()
+	}
+	if msg, ok := msg.(tea.KeyMsg); ok && msg.String() == "enter" {
+		m.contentFocused = true
 	}
 	return m, nil
 }
@@ -138,15 +168,30 @@ func (m *Model) handleViewKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 	switch m.view {
 	case viewBrowse:
 		if !m.browseOpen {
+			cols := 1
+			contentW := max(1, m.width-m.sidebarWidth()-4)
+			if contentW >= 76 {
+				cols = 2
+			}
 			switch s {
-			case "left", "h", "up", "k":
-				if m.browseCursor > 0 {
+			case "left", "h":
+				if cols > 1 && m.browseCursor%cols > 0 {
 					m.browseCursor--
 				}
 				return true, nil
-			case "right", "l", "down", "j":
-				if m.browseCursor < len(m.collections)-1 {
+			case "right", "l":
+				if cols > 1 && m.browseCursor%cols < cols-1 && m.browseCursor+1 < len(m.collections) {
 					m.browseCursor++
+				}
+				return true, nil
+			case "up", "k":
+				if m.browseCursor-cols >= 0 {
+					m.browseCursor -= cols
+				}
+				return true, nil
+			case "down", "j":
+				if m.browseCursor+cols < len(m.collections) {
+					m.browseCursor += cols
 				}
 				return true, nil
 			case "enter":
@@ -177,7 +222,7 @@ func (m *Model) handleViewKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 			if m.challengeCur < len(entries)-1 {
 				m.challengeCur++
 			}
-			vis := max(1, m.height-8)
+			vis := m.browseVisibleHeight()
 			if m.challengeCur >= m.challengeOff+vis {
 				m.challengeOff = m.challengeCur - vis + 1
 			}
@@ -250,6 +295,36 @@ func (m *Model) handleViewKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 			m.resetSettings()
 			return true, configChanged(m.cfg)
 		}
+	case viewProfile:
+		if m.editingName {
+			switch s {
+			case "esc":
+				m.editingName = false
+				return true, nil
+			case "enter":
+				name := strings.TrimSpace(m.nameBuffer)
+				if name != "" {
+					m.profile.Username = name
+				}
+				m.editingName = false
+				return true, profileChanged(m.profile)
+			case "backspace":
+				if len(m.nameBuffer) > 0 {
+					m.nameBuffer = m.nameBuffer[:len(m.nameBuffer)-1]
+				}
+				return true, nil
+			default:
+				if len(s) == 1 && len(m.nameBuffer) < 30 {
+					m.nameBuffer += s
+				}
+				return true, nil
+			}
+		}
+		if s == "enter" || s == "e" {
+			m.editingName = true
+			m.nameBuffer = m.profile.Username
+			return true, nil
+		}
 	}
 	return false, nil
 }
@@ -263,19 +338,17 @@ func (m Model) View() string {
 	sideW := m.sidebarWidth()
 	contentW := max(1, m.width-sideW)
 
-	side := lipgloss.NewStyle().Background(theme.Background).Render(
-		m.sidebar.View(max(8, sideW-1), bodyH, sidebarLogo),
-	)
-	content := lipgloss.NewStyle().Background(theme.Background).Render(
-		m.renderContent(contentW, bodyH),
-	)
+	side := m.sidebar.View(sideW, bodyH, sidebarLogo, !m.contentFocused)
+	actualSideW := lipgloss.Width(side)
+	contentW = max(1, m.width-actualSideW)
+	content := m.renderContent(contentW, bodyH)
 	status := m.statusBar.WithWidth(m.width).WithMode(m.mode()).WithHints(m.hints()).View()
 
 	full := lipgloss.JoinVertical(lipgloss.Left,
 		lipgloss.JoinHorizontal(lipgloss.Top, side, content),
 		status,
 	)
-	return lipgloss.NewStyle().Width(m.width).Height(m.height).Background(theme.Background).Render(full)
+	return lipgloss.NewStyle().Width(m.width).Height(m.height).Render(full)
 }
 
 func (m Model) renderContent(width, height int) string {
@@ -292,7 +365,6 @@ func (m Model) renderContent(width, height int) string {
 		Width(width).
 		Height(height).
 		Padding(1, 2).
-		Background(theme.Background).
 		Render(main)
 }
 
@@ -317,10 +389,19 @@ func (m Model) renderDashboard(width int) string {
 	if streak > 0 {
 		streakColor = theme.Red
 	}
+	cardW := (width - 10) / 3
+	if cardW < 12 {
+		cardW = 12
+	}
+	if cardW > 28 {
+		cardW = 28
+	}
 	cards := lipgloss.JoinHorizontal(lipgloss.Top,
-		statCard("Streak", formatStreak(streak), streakColor, max(16, (width-4)/3)), "  ",
-		statCard("Solved", strconv.Itoa(m.profile.TotalSolved())+" / "+strconv.Itoa(len(m.index.Challenges)), theme.TextPrimary, max(16, (width-4)/3)), "  ",
-		statCard("Avg solve", m.avgSolve(), theme.TextPrimary, max(16, (width-4)/3)),
+		statCard("Streak", formatStreak(streak), streakColor, cardW),
+		"  ",
+		statCard("Solved", strconv.Itoa(m.profile.TotalSolved())+" / "+strconv.Itoa(len(m.index.Challenges)), theme.TextPrimary, cardW),
+		"  ",
+		statCard("Avg solve", m.avgSolve(), theme.TextPrimary, cardW),
 	)
 	rows := m.recentRows(width)
 	return lipgloss.JoinVertical(lipgloss.Left,
@@ -344,12 +425,12 @@ func (m Model) renderBrowse(width, height int) string {
 	if len(entries) == 0 {
 		return lipgloss.JoinVertical(lipgloss.Left, head, "", "No challenges", "", lipgloss.NewStyle().Foreground(theme.TextDim).Render("esc back"))
 	}
-	vis := max(1, height-6)
+	vis := m.browseVisibleHeight()
 	start := min(max(0, m.challengeOff), max(0, len(entries)-vis))
 	end := min(len(entries), start+vis)
 	rows := make([]string, 0, end-start)
 	for i := start; i < end; i++ {
-		rows = append(rows, m.challengeRow(entries[i], width, i == m.challengeCur))
+		rows = append(rows, m.challengeRow(entries[i], width, i == m.challengeCur, i))
 	}
 	return lipgloss.JoinVertical(lipgloss.Left,
 		lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).Render("Collection: "+m.activeCollect), "",
@@ -363,25 +444,51 @@ func (m Model) renderProfile(width int) string {
 	if name == "" {
 		name = "anonymous"
 	}
-	avatar := lipgloss.NewStyle().Background(theme.Red).Foreground(theme.Background).Bold(true).Padding(1, 2).Render(strings.ToUpper(string(name[0])))
-	header := lipgloss.JoinHorizontal(lipgloss.Center, avatar, "  ", lipgloss.JoinVertical(lipgloss.Left,
-		lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).Render(name),
-		lipgloss.NewStyle().Foreground(theme.TextDim).Render(strconv.Itoa(m.profile.TotalSolved())+" challenges solved"),
-	))
+
+	avatar := lipgloss.NewStyle().
+		Background(theme.Red).Foreground(theme.Background).Bold(true).Padding(1, 2).
+		Render(strings.ToUpper(string(name[0])))
+
+	var nameDisplay string
+	if m.editingName {
+		cursor := lipgloss.NewStyle().Foreground(theme.Red).Render("█")
+		nameDisplay = lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).
+			Render(m.nameBuffer+cursor) + "\n" +
+			lipgloss.NewStyle().Foreground(theme.TextDim).Italic(true).Render("enter to save, esc to cancel")
+	} else {
+		nameDisplay = lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).Render(name) + "\n" +
+			lipgloss.NewStyle().Foreground(theme.TextDim).Render(strconv.Itoa(m.profile.TotalSolved())+" solved") +
+			"  " + lipgloss.NewStyle().Foreground(theme.TextFaint).Render("e to edit name")
+	}
+
+	header := lipgloss.JoinHorizontal(lipgloss.Center, avatar, "  ", nameDisplay)
+
 	e, md, h := m.diffCounts()
 	langs := m.languagePills()
 	cats := m.categoryBars(width)
+	pcw := (width - 10) / 3
+	if pcw < 12 {
+		pcw = 12
+	}
+	if pcw > 28 {
+		pcw = 28
+	}
+
+	sectionHead := func(s string) string {
+		return lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).MarginTop(1).Render(s)
+	}
+
 	return lipgloss.JoinVertical(lipgloss.Left,
 		header, "",
-		lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).Render("Languages"),
-		langs, "",
-		lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).Render("Difficulty breakdown"),
+		sectionHead("Languages"),
+		langs,
+		sectionHead("Difficulty"),
 		lipgloss.JoinHorizontal(lipgloss.Top,
-			statCard("Easy", strconv.Itoa(e), theme.Green, max(12, (width-4)/3)), "  ",
-			statCard("Medium", strconv.Itoa(md), theme.Amber, max(12, (width-4)/3)), "  ",
-			statCard("Hard", strconv.Itoa(h), theme.Red, max(12, (width-4)/3)),
-		), "",
-		lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).Render("Category breakdown"),
+			statCard("Easy", strconv.Itoa(e), theme.Green, pcw), "  ",
+			statCard("Medium", strconv.Itoa(md), theme.Amber, pcw), "  ",
+			statCard("Hard", strconv.Itoa(h), theme.Red, pcw),
+		),
+		sectionHead("Categories"),
 		cats,
 	)
 }
@@ -573,34 +680,50 @@ func (m *Model) applySetting(s *setting) {
 }
 
 func (m Model) mode() string {
+	name := "HOME"
 	switch m.view {
 	case viewBrowse:
-		return "BROWSE"
+		name = "BROWSE"
 	case viewProfile:
-		return "PROFILE"
+		name = "PROFILE"
 	case viewRandom:
-		return "RANDOM"
+		name = "RANDOM"
 	case viewSettings:
-		return "SETTINGS"
-	default:
-		return "HOME"
+		name = "SETTINGS"
 	}
+	if m.contentFocused {
+		return "› " + name
+	}
+	return name
 }
 
 func (m Model) hints() []components.KeyHint {
-	if m.view == viewBrowse && m.browseOpen {
-		return []components.KeyHint{{Key: "esc", Description: "back"}, {Key: "j/k", Description: "navigate"}, {Key: "enter", Description: "start"}, {Key: "q", Description: "quit"}}
-	}
-	if m.view == viewRandom {
-		return []components.KeyHint{{Key: "left/right", Description: "filter"}, {Key: "enter", Description: "start"}, {Key: "q", Description: "quit"}}
-	}
-	if m.view == viewSettings {
-		if m.editingSetting {
-			return []components.KeyHint{{Key: "left/right", Description: "choose"}, {Key: "enter", Description: "apply"}, {Key: "esc", Description: "cancel"}}
+	base := []components.KeyHint{{Key: "tab", Description: "switch focus"}}
+	if m.contentFocused {
+		if m.view == viewBrowse && m.browseOpen {
+			return append(base, components.KeyHint{Key: "j/k", Description: "navigate"}, components.KeyHint{Key: "enter", Description: "start"}, components.KeyHint{Key: "esc", Description: "back"})
 		}
-		return []components.KeyHint{{Key: "j/k", Description: "navigate"}, {Key: "enter", Description: "edit"}, {Key: "q", Description: "quit"}}
+		if m.view == viewBrowse {
+			return append(base, components.KeyHint{Key: "arrows", Description: "navigate"}, components.KeyHint{Key: "enter", Description: "open"})
+		}
+		if m.view == viewRandom {
+			return append(base, components.KeyHint{Key: "left/right", Description: "filter"}, components.KeyHint{Key: "enter", Description: "start"})
+		}
+		if m.view == viewSettings {
+			if m.editingSetting {
+				return append(base, components.KeyHint{Key: "left/right", Description: "choose"}, components.KeyHint{Key: "enter", Description: "apply"}, components.KeyHint{Key: "esc", Description: "cancel"})
+			}
+			return append(base, components.KeyHint{Key: "j/k", Description: "navigate"}, components.KeyHint{Key: "enter", Description: "edit"})
+		}
+		if m.view == viewProfile {
+			if m.editingName {
+				return []components.KeyHint{{Key: "enter", Description: "save"}, {Key: "esc", Description: "cancel"}}
+			}
+			return append(base, components.KeyHint{Key: "e", Description: "edit name"})
+		}
+		return append(base, components.KeyHint{Key: "esc", Description: "sidebar"})
 	}
-	return []components.KeyHint{{Key: "j/k", Description: "navigate"}, {Key: "enter", Description: "select"}, {Key: "q", Description: "quit"}}
+	return append(base, components.KeyHint{Key: "j/k", Description: "navigate"}, components.KeyHint{Key: "enter", Description: "select"}, components.KeyHint{Key: "q", Description: "quit"})
 }
 
 func (m Model) sidebarWidth() int {
@@ -620,6 +743,12 @@ func (m Model) sidebarWidth() int {
 	return w
 }
 
+func (m Model) browseVisibleHeight() int {
+	bodyH := max(1, m.height-1)
+	innerH := max(1, bodyH-2)
+	return max(1, innerH-8)
+}
+
 func shortcut(k string) bool {
 	return k == "d" || k == "b" || k == "p" || k == "r" || k == "s" || k == "q"
 }
@@ -631,6 +760,9 @@ func startChallenge(e challenge.IndexEntry) tea.Cmd {
 }
 func configChanged(cfg config.Config) tea.Cmd {
 	return func() tea.Msg { return ConfigChangedMsg{Config: cfg} }
+}
+func profileChanged(p *profile.Profile) tea.Cmd {
+	return func() tea.Msg { return ProfileChangedMsg{Profile: p} }
 }
 
 func (m Model) recentRows(width int) string {
@@ -670,34 +802,56 @@ func (m Model) collectionGrid(width int) string {
 	if cols > 1 {
 		cw = (width - gap) / 2
 	}
+	cw = max(10, cw-2)
 	cards := []string{}
 	for i, c := range m.collections {
 		cards = append(cards, collectionCard(c, cw, i == m.browseCursor))
 	}
 	rows := []string{}
 	for i := 0; i < len(cards); i += cols {
-		rows = append(rows, strings.Join(cards[i:min(len(cards), i+cols)], strings.Repeat(" ", gap)))
+		chunk := cards[i:min(len(cards), i+cols)]
+		if len(chunk) == 1 {
+			rows = append(rows, chunk[0])
+		} else {
+			rows = append(rows, lipgloss.JoinHorizontal(lipgloss.Top, chunk[0], strings.Repeat(" ", gap), chunk[1]))
+		}
 	}
 	return strings.Join(rows, "\n")
 }
 
-func (m Model) challengeRow(e challenge.IndexEntry, width int, cur bool) string {
-	mark := lipgloss.NewStyle().Foreground(theme.TextDim).Render(".")
+func (m Model) challengeRow(e challenge.IndexEntry, width int, cur bool, idx int) string {
+	mark := lipgloss.NewStyle().Foreground(theme.TextDim).Render("○")
 	if m.profile.IsSolved(e.ID) {
-		mark = lipgloss.NewStyle().Foreground(theme.Green).Render("v")
+		mark = lipgloss.NewStyle().Foreground(theme.Green).Render("✓")
 	}
-	pref := "  "
-	st := lipgloss.NewStyle().Foreground(theme.TextDim)
+
+	num := lipgloss.NewStyle().Foreground(theme.TextFaint).Width(4).Render(strconv.Itoa(idx+1) + ".")
+
+	diff := theme.DifficultyStyle(string(e.Difficulty)).Render(string(e.Difficulty))
+	diffW := lipgloss.Width(diff)
+
+	titleW := max(10, width-diffW-8)
+	title := cutToWidth(e.Title, titleW)
+
+	lineStyle := lipgloss.NewStyle().Width(width)
 	if cur {
-		pref = "> "
-		st = st.Foreground(theme.TextPrimary).Background(theme.Surface)
+		lineStyle = lineStyle.Background(theme.Surface)
+		title = lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).Render(title)
+		line := "› " + mark + " " + num + title
+		gap := width - lipgloss.Width(line) - diffW - 1
+		if gap < 1 {
+			gap = 1
+		}
+		return lineStyle.Render(line + strings.Repeat(" ", gap) + diff)
 	}
-	tags := ""
-	if len(e.Tags) > 0 {
-		tags = " " + lipgloss.NewStyle().Foreground(theme.TextFaint).Render("#"+strings.Join(e.Tags[:min(2, len(e.Tags))], " #"))
+
+	title = lipgloss.NewStyle().Foreground(theme.TextMid).Render(title)
+	line := "  " + mark + " " + num + title
+	gap := width - lipgloss.Width(line) - diffW - 1
+	if gap < 1 {
+		gap = 1
 	}
-	row := pref + mark + " " + cutToWidth(e.Title, max(12, width-30)) + " " + theme.DifficultyStyle(string(e.Difficulty)).Render(string(e.Difficulty)) + tags
-	return st.Width(width).Render(row)
+	return lineStyle.Render(line + strings.Repeat(" ", gap) + diff)
 }
 
 func (m Model) settingRow(s setting, width int, cur bool) string {
@@ -801,13 +955,29 @@ func (m Model) categoryBars(width int) string {
 		cats = append(cats, c)
 	}
 	sort.Strings(cats)
+	labelW := 0
+	for _, c := range cats {
+		if len(c) > labelW {
+			labelW = len(c)
+		}
+	}
+	if labelW > width/3 {
+		labelW = width / 3
+	}
+	if labelW < 8 {
+		labelW = 8
+	}
+
+	countW := 7
+	barW := max(8, width-labelW-countW-4)
+
 	rows := []string{}
 	for _, c := range cats {
-		rows = append(rows,
-			lipgloss.NewStyle().Foreground(theme.TextDim).Render(cutToWidth(c, max(8, width/3)))+" "+
-				progress(max(10, width/3), solved[c], total[c])+" "+
-				lipgloss.NewStyle().Foreground(theme.TextFaint).Render(strconv.Itoa(solved[c])+"/"+strconv.Itoa(total[c])),
-		)
+		label := lipgloss.NewStyle().Foreground(theme.TextDim).Width(labelW).Render(cutToWidth(c, labelW))
+		bar := progress(barW, solved[c], total[c])
+		count := lipgloss.NewStyle().Foreground(theme.TextFaint).Width(countW).Align(lipgloss.Right).
+			Render(strconv.Itoa(solved[c]) + "/" + strconv.Itoa(total[c]))
+		rows = append(rows, label+" "+bar+" "+count)
 	}
 	if len(rows) == 0 {
 		return lipgloss.NewStyle().Foreground(theme.TextDim).Render("No category data")

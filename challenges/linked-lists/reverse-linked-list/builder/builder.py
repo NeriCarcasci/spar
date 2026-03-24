@@ -1,125 +1,50 @@
-import ast
 import importlib.util
 import json
 import pathlib
 import sys
 
-
-def parse_value(raw: str):
-    value = raw.strip()
-    if value == "":
-        return ""
-    lowered = value.lower()
-    if lowered == "null":
-        return None
-    if lowered == "true":
-        return True
-    if lowered == "false":
-        return False
-    if value.startswith("[") or value.startswith("{"):
-        normalized = value.replace("null", "None").replace("true", "True").replace("false", "False")
-        return ast.literal_eval(normalized)
-    if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
-        return value[1:-1]
-    try:
-        return int(value)
-    except ValueError:
-        pass
-    try:
-        return float(value)
-    except ValueError:
-        pass
-    return value
+TESTS = json.loads('[{"input":[1,2,3,4,5],"expected":[5,4,3,2,1]},{"input":[1,2],"expected":[2,1]},{"input":[],"expected":[]},{"input":[1],"expected":[1]},{"input":[1,2,3],"expected":[3,2,1]},{"input":[5,4,3,2,1],"expected":[1,2,3,4,5]}]')
+COMPARE_MODE = 'exact'
 
 
-def split_key_value(line: str):
-    key, value = line.split(":", 1)
-    return key.strip(), value.strip()
-
-
-def parse_tests(path: pathlib.Path):
-    lines = path.read_text(encoding="utf-8").splitlines()
-    tests = []
-    section = "visible"
-    i = 0
-    while i < len(lines):
-        line = lines[i].rstrip("\n")
-        stripped = line.strip()
-        if not stripped:
-            i += 1
-            continue
-        if stripped in ("visible:", "hidden:"):
-            section = stripped[:-1]
-            i += 1
-            continue
-        if line.startswith("  - "):
-            case = {}
-            first = line[4:].strip()
-            i += 1
-            if first:
-                key, value = split_key_value(first)
-                case[key] = parse_value(value)
-            while i < len(lines):
-                nxt = lines[i].rstrip("\n")
-                nxt_stripped = nxt.strip()
-                if nxt.startswith("  - ") or nxt_stripped in ("visible:", "hidden:"):
-                    break
-                if not nxt_stripped:
-                    i += 1
-                    continue
-                indent = len(nxt) - len(nxt.lstrip(" "))
-                if indent >= 4 and ":" in nxt:
-                    key, value = split_key_value(nxt[indent:].strip())
-                    case[key] = parse_value(value)
-                i += 1
-            case["visible"] = section == "visible"
-            tests.append(case)
-            continue
-        i += 1
-    return tests
-
-
-def parse_challenge(path: pathlib.Path):
-    meta = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
-        stripped = line.strip()
-        if not stripped or stripped.startswith("#"):
-            continue
-        if line.startswith(" "):
-            continue
-        if ":" not in stripped:
-            continue
-        key, value = split_key_value(stripped)
-        meta[key] = value.strip('"')
-    return meta
-
-
-def load_module(solution_path: pathlib.Path):
-    spec = importlib.util.spec_from_file_location("user_solution", solution_path)
-    if spec is None or spec.loader is None:
-        raise RuntimeError("unable to load solution")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-def resolve_function(module):
-    for name in ("reverse_list", "reverseList", "ReverseList"):
+def resolve_callable(module, names):
+    for name in names:
         fn = getattr(module, name, None)
         if callable(fn):
             return fn
-    raise RuntimeError("missing reverse_list function")
+    raise RuntimeError("missing function")
 
 
-def resolve_list_node(module):
-    cls = getattr(module, "ListNode", None)
-    if cls is None:
-        class ListNode:
-            def __init__(self, val=0, next=None):
-                self.val = val
-                self.next = next
-        return ListNode
-    return cls
+def resolve_class(module, name, fallback):
+    cls = getattr(module, name, None)
+    if cls is not None:
+        return cls
+    return fallback
+
+
+def list_node_fallback(val=0, next=None):
+    class ListNode:
+        def __init__(self, val=0, next=None):
+            self.val = val
+            self.next = next
+    return ListNode(val, next)
+
+
+def tree_node_fallback(val=0, left=None, right=None):
+    class TreeNode:
+        def __init__(self, val=0, left=None, right=None):
+            self.val = val
+            self.left = left
+            self.right = right
+    return TreeNode(val, left, right)
+
+
+def graph_node_fallback(val=0, neighbors=None):
+    class Node:
+        def __init__(self, val=0, neighbors=None):
+            self.val = val
+            self.neighbors = neighbors if neighbors is not None else []
+    return Node(val, neighbors)
 
 
 def array_to_linked_list(values, node_cls):
@@ -130,58 +55,215 @@ def array_to_linked_list(values, node_cls):
         if head is None:
             head = node
             tail = node
-            continue
-        tail.next = node
-        tail = node
+        else:
+            tail.next = node
+            tail = node
     return head
 
 
 def linked_list_to_array(head):
-    values = []
-    seen = 0
+    out = []
     node = head
+    seen = 0
     while node is not None and seen < 100000:
-        values.append(node.val)
+        out.append(node.val)
         node = node.next
         seen += 1
-    return values
+    return out
+
+
+def array_to_tree(values, node_cls):
+    if not values:
+        return None
+    if values[0] is None:
+        return None
+    nodes = [None if v is None else node_cls(v) for v in values]
+    idx = 1
+    for node in nodes:
+        if node is None:
+            continue
+        if idx < len(nodes):
+            node.left = nodes[idx]
+            idx += 1
+        if idx < len(nodes):
+            node.right = nodes[idx]
+            idx += 1
+    return nodes[0]
+
+
+def tree_to_array(root):
+    if root is None:
+        return []
+    out = []
+    queue = [root]
+    i = 0
+    while i < len(queue):
+        node = queue[i]
+        i += 1
+        if node is None:
+            out.append(None)
+            continue
+        out.append(node.val)
+        queue.append(node.left)
+        queue.append(node.right)
+    while out and out[-1] is None:
+        out.pop()
+    return out
+
+
+def find_tree_node(root, value):
+    if root is None:
+        return None
+    queue = [root]
+    i = 0
+    while i < len(queue):
+        node = queue[i]
+        i += 1
+        if node is None:
+            continue
+        if node.val == value:
+            return node
+        queue.append(node.left)
+        queue.append(node.right)
+    return None
+
+
+def adjlist_to_graph(adj_list, node_cls):
+    if not adj_list:
+        return None
+    nodes = [node_cls(i + 1) for i in range(len(adj_list))]
+    for idx, neighbors in enumerate(adj_list):
+        nodes[idx].neighbors = [nodes[n - 1] for n in neighbors]
+    return nodes[0]
+
+
+def graph_to_adjlist(root):
+    if root is None:
+        return []
+    seen = {}
+    queue = [root]
+    order = []
+    while queue:
+        node = queue.pop(0)
+        if node.val in seen:
+            continue
+        seen[node.val] = node
+        order.append(node.val)
+        for nei in node.neighbors:
+            queue.append(nei)
+    max_id = max(order) if order else 0
+    out = [[] for _ in range(max_id)]
+    for value, node in seen.items():
+        out[value - 1] = sorted([n.val for n in node.neighbors])
+    return out
 
 
 def render(value):
-    if isinstance(value, (list, dict, tuple, int, float, bool)) or value is None:
-        return json.dumps(value, separators=(",", ":"))
-    return str(value)
+    return json.dumps(value, separators=(",", ":"))
 
 
-def run(solution_path: pathlib.Path, tests_path: pathlib.Path, challenge_path: pathlib.Path):
+def canonical(value, mode):
+    if mode == "pair_unordered":
+        if isinstance(value, list):
+            return sorted(value)
+        return value
+    if mode == "list_unordered":
+        if isinstance(value, list):
+            return sorted(value)
+        return value
+    if mode == "strings_unordered":
+        if isinstance(value, list):
+            return sorted(value)
+        return value
+    if mode == "groups_unordered":
+        if isinstance(value, list):
+            groups = []
+            for group in value:
+                if isinstance(group, list):
+                    groups.append(sorted(group))
+                else:
+                    groups.append(group)
+            return sorted(groups)
+        return value
+    if mode == "nested_unordered":
+        if isinstance(value, list):
+            normalized = []
+            for item in value:
+                if isinstance(item, list):
+                    normalized.append(sorted(item))
+                else:
+                    normalized.append(item)
+            return sorted(normalized)
+        return value
+    return value
+
+
+def equal_values(got, expected, mode):
+    if mode == "pair_target_1idx":
+        return False
+    if mode == "float_sequence":
+        if not isinstance(got, list) or not isinstance(expected, list) or len(got) != len(expected):
+            return False
+        for a, b in zip(got, expected):
+            if a is None and b is None:
+                continue
+            if a is None or b is None:
+                return False
+            if abs(float(a) - float(b)) > 1e-9:
+                return False
+        return True
+    return canonical(got, mode) == canonical(expected, mode)
+
+
+def load_module(solution_path):
+    spec = importlib.util.spec_from_file_location("user_solution", solution_path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError("unable to load solution")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def run(solution_path, tests_path, challenge_path):
+    _ = pathlib.Path(tests_path).read_text(encoding="utf-8")
+    _ = pathlib.Path(challenge_path).read_text(encoding="utf-8")
     module = load_module(solution_path)
-    fn = resolve_function(module)
-    node_cls = resolve_list_node(module)
-    tests = parse_tests(tests_path)
-    meta = parse_challenge(challenge_path)
-    input_type = meta.get("input_type", "array")
-    output_type = meta.get("output_type", "array")
-
     failures = 0
-    for idx, test in enumerate(tests, start=1):
-        raw_input = test.get("input", [])
-        if input_type == "linked-list":
-            call_input = array_to_linked_list(raw_input, node_cls)
-        else:
-            call_input = raw_input
+    for idx, case in enumerate(TESTS, start=1):
 
-        got = fn(call_input)
-        if output_type == "linked-list":
-            got_value = linked_list_to_array(got)
-        else:
-            got_value = got
+        fn = resolve_callable(module, ['reverse_list'])
+        node_cls = resolve_class(module, "ListNode", list_node_fallback)
+        head = array_to_linked_list(case.get("input", []), node_cls)
+        got_value = linked_list_to_array(fn(head))
 
-        expected = test.get("expected")
-        if got_value == expected:
+        expected = case.get("expected")
+        expected_length = case.get("expected_length")
+        passed = False
+        if COMPARE_MODE == "pair_target_1idx":
+            inp = case.get("input", {})
+            numbers = inp.get("numbers", []) if isinstance(inp, dict) else []
+            target = inp.get("target") if isinstance(inp, dict) else None
+            if isinstance(got_value, list) and len(got_value) == 2 and target is not None:
+                i = got_value[0] - 1
+                j = got_value[1] - 1
+                passed = 0 <= i < len(numbers) and 0 <= j < len(numbers) and i != j and (numbers[i] + numbers[j] == target)
+            else:
+                passed = False
+        elif expected_length is not None:
+            try:
+                passed = len(got_value) == expected_length
+            except Exception:
+                passed = False
+        else:
+            passed = equal_values(got_value, expected, COMPARE_MODE)
+        if passed:
             print(f"PASS {idx}")
         else:
             failures += 1
-            print(f"FAIL {idx} got={render(got_value)} expected={render(expected)}")
+            if expected_length is not None:
+                print(f"FAIL {idx} got={render(got_value)} expected={render(expected_length)}")
+            else:
+                print(f"FAIL {idx} got={render(got_value)} expected={render(expected)}")
     return failures == 0
 
 

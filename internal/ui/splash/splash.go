@@ -10,13 +10,9 @@ import (
 
 const minimumDisplayDuration = 1500 * time.Millisecond
 
-const logo = `
-  ____  ____   ___   ____
- / ___||  _ \ / _ \ |  _ \
- \___ \| |_) | | | || |_) |
-  ___) |  __/| |_| ||  _ <
- |____/|_|    \___/ |_| \_\
-`
+const logo = `╭──╮ ╭──╮ ╭──╮ ╭──╮
+╰──╮ ╰──╯ ├──┤ ├─╮│
+╰──╯ ╵    ╵  ╵ ╵ ╰╯`
 
 const tagline = "code under pressure"
 
@@ -94,7 +90,6 @@ func (m Model) View() string {
 	return lipgloss.NewStyle().
 		Width(m.width).
 		Height(m.height).
-		Background(theme.Background).
 		Render(placed)
 }
 

@@ -166,12 +166,20 @@ func (m Model) updateDashboard(msg tea.Msg) (Model, tea.Cmd) {
 		if err != nil {
 			return m, nil
 		}
-		m.session = session.New(ch, m.config.PreferredLanguage).SetSize(m.width, m.height)
+		lang := m.config.PreferredLanguage
+		code, _ := challenge.LoadSetupCode(ch.Path, lang)
+		m.session = session.New(ch, lang).SetSize(m.width, m.height)
+		if code != "" {
+			m.session = m.session.WithCode(code)
+		}
 		m.currentView = SessionView
-		return m, nil
+		return m, m.session.Init()
 	case dashboard.ConfigChangedMsg:
 		m.config = msg.Config
 		return m, nil
+	case dashboard.ProfileChangedMsg:
+		m.profile = msg.Profile
+		return m, saveProfile(msg.Profile)
 	}
 
 	dashModel, cmd := m.dashboard.Update(msg)
@@ -189,9 +197,14 @@ func (m Model) updateBrowser(msg tea.Msg) (Model, tea.Cmd) {
 		if err != nil {
 			return m, nil
 		}
-		m.session = session.New(ch, m.config.PreferredLanguage).SetSize(m.width, m.height)
+		lang := m.config.PreferredLanguage
+		code, _ := challenge.LoadSetupCode(ch.Path, lang)
+		m.session = session.New(ch, lang).SetSize(m.width, m.height)
+		if code != "" {
+			m.session = m.session.WithCode(code)
+		}
 		m.currentView = SessionView
-		return m, nil
+		return m, m.session.Init()
 	case tea.KeyMsg:
 		if msg.String() == "q" {
 			return m, tea.Quit
@@ -246,6 +259,8 @@ func (m Model) propagateSize() Model {
 
 func loadData(cfg config.Config) tea.Cmd {
 	return func() tea.Msg {
+		config.EnsureDirectories()
+
 		var idx *challenge.Index
 		var prof *profile.Profile
 		repoPath := resolveRepoPath(cfg.RepoPath)
@@ -260,12 +275,17 @@ func loadData(cfg config.Config) tea.Cmd {
 			idx = &challenge.Index{}
 		}
 
-		loaded, err := profile.Load(config.ProfilePath())
+		profPath := config.ProfilePath()
+		loaded, err := profile.Load(profPath)
 		if err == nil {
 			prof = loaded
 		}
 		if prof == nil {
 			prof = &profile.Profile{}
+		}
+
+		if _, statErr := os.Stat(profPath); os.IsNotExist(statErr) {
+			profile.Save(profPath, prof)
 		}
 
 		return loadingDoneMsg{index: idx, profile: prof, repoPath: repoPath}
@@ -283,6 +303,15 @@ func reloadIndex(repoPath string) tea.Cmd {
 			return reloadedIndexMsg{}
 		}
 		return reloadedIndexMsg{index: idx}
+	}
+}
+
+type profileSavedMsg struct{}
+
+func saveProfile(p *profile.Profile) tea.Cmd {
+	return func() tea.Msg {
+		profile.Save(config.ProfilePath(), p)
+		return profileSavedMsg{}
 	}
 }
 
