@@ -72,6 +72,10 @@ type Model struct {
 
 	editingName bool
 	nameBuffer  string
+
+	dashSection int
+	dashCursor  int
+	dashStrips  [][]challenge.IndexEntry
 }
 
 func New(p *profile.Profile, idx *challenge.Index, cfg config.Config) Model {
@@ -325,6 +329,43 @@ func (m *Model) handleViewKey(msg tea.KeyMsg) (bool, tea.Cmd) {
 			m.nameBuffer = m.profile.Username
 			return true, nil
 		}
+	case viewDashboard:
+		m.refreshDashStrips()
+		if len(m.dashStrips) == 0 {
+			return false, nil
+		}
+		switch s {
+		case "up", "k":
+			if m.dashSection > 0 {
+				m.dashSection--
+				if m.dashCursor >= len(m.dashStrips[m.dashSection]) {
+					m.dashCursor = len(m.dashStrips[m.dashSection]) - 1
+				}
+			}
+			return true, nil
+		case "down", "j":
+			if m.dashSection < len(m.dashStrips)-1 {
+				m.dashSection++
+				if m.dashCursor >= len(m.dashStrips[m.dashSection]) {
+					m.dashCursor = len(m.dashStrips[m.dashSection]) - 1
+				}
+			}
+			return true, nil
+		case "left", "h":
+			if m.dashCursor > 0 {
+				m.dashCursor--
+			}
+			return true, nil
+		case "right", "l":
+			if m.dashSection < len(m.dashStrips) && m.dashCursor < len(m.dashStrips[m.dashSection])-1 {
+				m.dashCursor++
+			}
+			return true, nil
+		case "enter":
+			if m.dashSection < len(m.dashStrips) && m.dashCursor < len(m.dashStrips[m.dashSection]) {
+				return true, startChallenge(m.dashStrips[m.dashSection][m.dashCursor])
+			}
+		}
 	}
 	return false, nil
 }
@@ -383,34 +424,164 @@ func (m Model) renderView(width, height int) string {
 	}
 }
 
+func (m *Model) refreshDashStrips() {
+	attempted := map[string]bool{}
+	solved := map[string]bool{}
+	for _, s := range m.profile.Solves {
+		attempted[s.ChallengeID] = true
+		if s.Passed {
+			solved[s.ChallengeID] = true
+		}
+	}
+
+	var strips [][]challenge.IndexEntry
+
+	var cont []challenge.IndexEntry
+	for _, e := range m.index.Challenges {
+		if attempted[e.ID] && !solved[e.ID] {
+			cont = append(cont, e)
+		}
+	}
+	if len(cont) > 0 {
+		strips = append(strips, cont)
+	}
+
+	totalSolved := len(solved)
+	targetDiff := challenge.Easy
+	if totalSolved >= 20 {
+		targetDiff = challenge.Hard
+	} else if totalSolved >= 5 {
+		targetDiff = challenge.Medium
+	}
+	var suggested []challenge.IndexEntry
+	for _, e := range m.index.Challenges {
+		if !solved[e.ID] && e.Difficulty == targetDiff {
+			suggested = append(suggested, e)
+		}
+	}
+	if len(suggested) == 0 {
+		for _, e := range m.index.Challenges {
+			if !solved[e.ID] {
+				suggested = append(suggested, e)
+			}
+		}
+	}
+	if len(suggested) > 0 {
+		strips = append(strips, suggested)
+	}
+
+	var easy []challenge.IndexEntry
+	for _, e := range m.index.Challenges {
+		if !solved[e.ID] && e.Difficulty == challenge.Easy {
+			easy = append(easy, e)
+		}
+	}
+	if len(easy) > 0 {
+		strips = append(strips, easy)
+	}
+
+	m.dashStrips = strips
+	if m.dashSection >= len(strips) {
+		m.dashSection = max(0, len(strips)-1)
+	}
+	if len(strips) > 0 && m.dashCursor >= len(strips[m.dashSection]) {
+		m.dashCursor = max(0, len(strips[m.dashSection])-1)
+	}
+}
+
 func (m Model) renderDashboard(width int) string {
+	head := lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true)
+	dim := lipgloss.NewStyle().Foreground(theme.TextDim)
+
 	streak := m.profile.CurrentStreak()
 	streakColor := theme.TextDim
 	if streak > 0 {
 		streakColor = theme.Red
 	}
-	cardW := (width - 10) / 3
-	if cardW < 12 {
-		cardW = 12
+
+	statsLine := lipgloss.NewStyle().Foreground(streakColor).Bold(true).Render(formatStreak(streak)+" streak") +
+		"  " + dim.Render(strconv.Itoa(m.profile.TotalSolved())+"/"+strconv.Itoa(len(m.index.Challenges))+" solved") +
+		"  " + dim.Render("avg "+m.avgSolve())
+
+	var sections []string
+	sections = append(sections, statsLine, "")
+
+	labels := []string{"Continue", "Suggested for you", "Quick wins"}
+	for si, strip := range m.dashStrips {
+		if si < len(labels) {
+			sections = append(sections, head.Render(labels[si]))
+		} else {
+			sections = append(sections, head.Render("Challenges"))
+		}
+		isCurSection := m.contentFocused && si == m.dashSection
+		sections = append(sections, m.challengeStrip(strip, width, 5, isCurSection, m.dashCursor), "")
+	}
+
+	recentRows := m.recentRows(width)
+	if recentRows != "" {
+		sections = append(sections, head.Render("Recent activity"), recentRows)
+	}
+
+	if len(m.index.Challenges) == 0 {
+		sections = append(sections, "", dim.Render("No challenges loaded — check repo path in Settings"))
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, sections...)
+}
+
+func (m Model) challengeStrip(entries []challenge.IndexEntry, width, maxItems int, active bool, cursor int) string {
+	if len(entries) > maxItems {
+		entries = entries[:maxItems]
+	}
+
+	n := len(entries)
+	gaps := n - 1
+	cardW := (width - gaps - 2*n) / n
+	if cardW < 14 {
+		cardW = 14
+		for n > 1 && (n*cardW+2*n+n-1) > width {
+			n--
+		}
+		entries = entries[:n]
 	}
 	if cardW > 28 {
 		cardW = 28
 	}
-	cards := lipgloss.JoinHorizontal(lipgloss.Top,
-		statCard("Streak", formatStreak(streak), streakColor, cardW),
-		"  ",
-		statCard("Solved", strconv.Itoa(m.profile.TotalSolved())+" / "+strconv.Itoa(len(m.index.Challenges)), theme.TextPrimary, cardW),
-		"  ",
-		statCard("Avg solve", m.avgSolve(), theme.TextPrimary, cardW),
-	)
-	rows := m.recentRows(width)
-	return lipgloss.JoinVertical(lipgloss.Left,
-		lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).Render("Dashboard"), "",
-		cards, "",
-		lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).Render("Recent sessions"),
-		rows, "",
-		lipgloss.NewStyle().Foreground(theme.TextDim).Render("press enter on Browse to find challenges"),
-	)
+
+	cardH := 2
+
+	cards := make([]string, len(entries))
+	for i, e := range entries {
+		diff := theme.DifficultyStyle(string(e.Difficulty)).Render(string(e.Difficulty))
+		title := cutToWidth(e.Title, cardW-2)
+		cat := lipgloss.NewStyle().Foreground(theme.TextFaint).Render(cutToWidth(e.Category, cardW-2))
+
+		borderColor := theme.Border
+		if active && i == cursor {
+			borderColor = theme.Red
+		}
+
+		st := lipgloss.NewStyle().
+			Width(cardW).
+			Height(cardH).
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(borderColor).
+			Padding(0, 1)
+
+		cards[i] = st.Render(lipgloss.JoinVertical(lipgloss.Left,
+			lipgloss.NewStyle().Foreground(theme.TextPrimary).Render(title),
+			diff+" "+cat,
+		))
+	}
+
+	parts := make([]string, 0, len(cards)*2-1)
+	for i, c := range cards {
+		if i > 0 {
+			parts = append(parts, " ")
+		}
+		parts = append(parts, c)
+	}
+	return lipgloss.JoinHorizontal(lipgloss.Top, parts...)
 }
 
 func (m Model) renderBrowse(width, height int) string {
@@ -430,7 +601,7 @@ func (m Model) renderBrowse(width, height int) string {
 	end := min(len(entries), start+vis)
 	rows := make([]string, 0, end-start)
 	for i := start; i < end; i++ {
-		rows = append(rows, m.challengeRow(entries[i], width, i == m.challengeCur, i))
+		rows = append(rows, m.challengeRow(entries[i], width, m.contentFocused && i == m.challengeCur, i))
 	}
 	return lipgloss.JoinVertical(lipgloss.Left,
 		lipgloss.NewStyle().Foreground(theme.TextPrimary).Bold(true).Render("Collection: "+m.activeCollect), "",
@@ -721,6 +892,9 @@ func (m Model) hints() []components.KeyHint {
 			}
 			return append(base, components.KeyHint{Key: "e", Description: "edit name"})
 		}
+		if m.view == viewDashboard && len(m.dashStrips) > 0 {
+			return append(base, components.KeyHint{Key: "arrows", Description: "navigate"}, components.KeyHint{Key: "enter", Description: "start"})
+		}
 		return append(base, components.KeyHint{Key: "esc", Description: "sidebar"})
 	}
 	return append(base, components.KeyHint{Key: "j/k", Description: "navigate"}, components.KeyHint{Key: "enter", Description: "select"}, components.KeyHint{Key: "q", Description: "quit"})
@@ -805,7 +979,7 @@ func (m Model) collectionGrid(width int) string {
 	cw = max(10, cw-2)
 	cards := []string{}
 	for i, c := range m.collections {
-		cards = append(cards, collectionCard(c, cw, i == m.browseCursor))
+		cards = append(cards, collectionCard(c, cw, m.contentFocused && i == m.browseCursor))
 	}
 	rows := []string{}
 	for i := 0; i < len(cards); i += cols {

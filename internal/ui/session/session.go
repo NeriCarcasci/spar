@@ -448,7 +448,12 @@ func (m Model) renderHeader() string {
 	tabParts := make([]string, len(tabNames))
 	for i, t := range tabNames {
 		if i == m.activeTab {
-			tabParts[i] = lipgloss.NewStyle().Foreground(theme.Red).Bold(true).Padding(0, 1).Render(t)
+			tabParts[i] = lipgloss.NewStyle().
+				Foreground(theme.Background).
+				Background(theme.Red).
+				Bold(true).
+				Padding(0, 1).
+				Render(t)
 		} else {
 			tabParts[i] = lipgloss.NewStyle().Foreground(theme.TextDim).Padding(0, 1).Render(t)
 		}
@@ -458,7 +463,7 @@ func (m Model) renderHeader() string {
 	divider := lipgloss.NewStyle().Foreground(theme.Border).Render(strings.Repeat("─", max(1, m.width-4)))
 
 	return lipgloss.NewStyle().Width(m.width).Padding(0, 2).Render(
-		lipgloss.JoinVertical(lipgloss.Left, headerLine, tabLine, divider),
+		lipgloss.JoinVertical(lipgloss.Left, headerLine, "", tabLine, divider),
 	)
 }
 

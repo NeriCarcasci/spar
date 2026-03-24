@@ -14,55 +14,93 @@
 
 ---
 
-spar is a free, open-source, terminal-based coding challenge platform. It has a built-in editor that blocks copy-paste, an AI interviewer that pressure-tests your solutions mid-session, and zero backend — everything runs locally.
+spar is a terminal-based coding challenge platform with a built-in editor and an AI interviewer. It runs entirely offline from a local repo — no accounts, no browser, no backend. Open source, free forever.
 
-The interview doesn't have a paste button. Neither does spar.
+<!--
+TODO: Replace with actual terminal screenshots once the UI is finalized.
+Take these with a clean terminal at ~120 cols, dark theme.
 
-## Why
+<p align="center">
+  <img src="assets/screenshot-dashboard.png" alt="spar dashboard" width="700"/>
+</p>
+-->
 
-LeetCode is bloated, paywalled, and runs in a browser where pasting from ChatGPT takes two seconds. That's not practice — that's performance. spar puts you in your terminal with nothing but a problem and a blinking cursor. Every character comes from your fingers. Every answer comes from your head.
+## What it does
 
-## How it works
+You pick a challenge, write your solution in spar's editor, and run the tests. If you've set up an AI provider, it'll ask you questions about your approach while you work — the same kind of stuff you'd hear in a real interview. "What's the time complexity here?", "What happens if the input is empty?", that sort of thing.
+
+The editor blocks paste. Not to be annoying — just to keep things honest. If you're prepping for an interview, practicing without a clipboard is the whole point.
 
 ```
 $ spar
 ```
 
-That's it. Pick a challenge. Write your solution in the built-in editor. Run the tests. If you've configured an AI provider, it interviews you about your approach — time complexity, edge cases, trade-offs — just like a real technical screen.
-
-No browser. No account. No paywall.
-
-## Features
-
-**Built-in editor** — Syntax highlighting, line numbers, undo/redo, auto-indent. Paste detection rejects clipboard input and logs the attempt. Type it out.
-
-**AI interviewer** — Three modes. *Interview mode* asks probing questions mid-solve ("What's the time complexity?", "What happens with empty input?"). *Practice mode* gives Socratic hints without ever revealing the answer. *Post-mortem mode* walks you through optimal solutions after you submit.
-
-**165 challenges across 8 collections** — The Foundation (75 core algorithm patterns), System Design Lite, Concurrency & Parallelism, Data Structures from Scratch, Bit Manipulation & Math, Recursion & Backtracking, Real-World Patterns, and Language Idiomatic problems.
-
-**5 languages** — Python, Go, JavaScript, C++, Rust. Every challenge has idiomatic setup code and reference solutions in all five.
-
-**Mock interviews** — Curated sets of 3 problems designed to simulate a 45-minute technical screen. The AI treats the entire set as one continuous session.
-
-**Your AI, your cost** — spar connects to your existing Claude or OpenAI account via OAuth. No API keys. No subscription to us. No middleman.
-
-<!-- 
-Uncomment when screenshots are ready:
-
-## Screenshots
+<!--
+TODO: Screenshot of a coding session with the split layout —
+problem on left, editor on right, AI chat at bottom.
 
 <p align="center">
-  <img src="assets/screenshot-dashboard.png" alt="Dashboard" width="700"/>
-</p>
-
-<p align="center">
-  <img src="assets/screenshot-session.png" alt="Coding session" width="700"/>
+  <img src="assets/screenshot-session.png" alt="coding session" width="700"/>
 </p>
 -->
 
+## AI modes
+
+spar has three modes depending on what you're after:
+
+**Interview** — the AI watches your progress and asks follow-up questions mid-session. It'll push back on your approach, ask about edge cases, and give you a debrief when you're done.
+
+**Practice** — you can ask the AI for help, but it won't give you code. It'll nudge you toward the right idea without handing you the answer.
+
+**Post-mortem** — after you solve (or give up), it walks through optimal approaches and compares them to what you wrote.
+
+All three are optional. spar works fine without AI — you just won't get the interview pressure.
+
+## Challenges
+
+165 challenges across 8 collections, each with setup code and solutions in Python, Go, JavaScript, C++, and Rust.
+
+| Collection | Count | |
+|-----------|-------|-|
+| The Foundation | 75 | Arrays, trees, graphs, DP — the core patterns |
+| System Design Lite | 15 | LRU caches, rate limiters, circuit breakers |
+| Concurrency | 10 | Producer-consumer, dining philosophers, deadlocks |
+| Data Structures | 15 | Hash maps, heaps, AVL trees — build them yourself |
+| Bit Manipulation | 15 | The one everyone skips until it shows up |
+| Recursion Deep Dive | 10 | Constraint satisfaction, pruning, backtracking |
+| Real-World Patterns | 15 | JSON parsers, cron expressions, diff algorithms |
+| Language Idiomatic | 10 | Same problem, different idiomatic solution per language |
+
+There's also 10 **mock interview sets** — curated groups of 3 problems meant to simulate a 45-minute screen. The AI treats the whole set as one session.
+
+Every challenge lives in the repo as a folder:
+
+```
+challenges/arrays/two-sum/
+├── challenge.yaml       # description, constraints, hints
+├── tests.yaml           # visible + hidden test cases
+├── setup/               # starting code per language
+└── solutions/           # reference solutions per language
+```
+
+Anyone can add challenges via PR.
+
+## Ranking
+
+spar tracks your progress with a ranking system. You earn SP (spar points) for each solve — more for harder problems, faster solves, clean first-attempt runs, and strong AI interview scores.
+
+```
+  ◁◆▷  Sentinel II
+  ████████████░░░░░░░  3,920 / 5,800 SP
+```
+
+Seven ranks: **Spark** → **Cipher** → **Warden** → **Sentinel** → **Arbiter** → **Sovereign** → **Mythic**, each with three divisions. Complete entire collections to earn track medals (bronze, silver, gold) for bonus SP.
+
+Everything is local. You're not competing with anyone — just tracking your own progress.
+
 ## Install
 
-**Go install** (recommended):
+**Recommended:**
 
 ```bash
 go install github.com/spar-cli/spar@latest
@@ -76,96 +114,57 @@ cd spar
 go build -o spar ./cmd/spar
 ```
 
-spar expects the challenge repo to be cloned locally. On first run it will ask you to configure the path.
+On first run, spar walks you through setup — repo path, preferred language, AI provider (or none).
 
-### Language support
+### Languages
 
-spar runs your solution using whatever toolchains you have installed. You need at least one:
+spar uses whatever toolchains you already have installed:
 
-| Language | Requirement |
-|----------|------------|
-| Python | `python3` on PATH |
-| Go | `go` on PATH |
-| JavaScript | `node` on PATH |
-| C++ | `g++` on PATH |
-| Rust | `rustc` on PATH |
+| Language | Needs |
+|----------|-------|
+| Python | `python3` |
+| Go | `go` |
+| JavaScript | `node` |
+| C++ | `g++` |
+| Rust | `rustc` |
 
-No language installed? spar tells you. It doesn't guess.
+You only need the ones you want to use.
 
-## Challenges
-
-Challenges live in `challenges/`, organized by collection and category. Each challenge folder contains:
-
-```
-challenges/arrays/two-sum/
-  challenge.yaml          Problem description, constraints, hints
-  tests.yaml              Visible + hidden test cases
-  setup/                  Blank starting code per language
-  solutions/              Reference solutions per language
-```
-
-The full challenge index is in `challenges/index.yaml` — a single file the app reads on startup for fast browsing. It's auto-generated, never hand-edited.
-
-### Collections
-
-| Collection | Count | What it covers |
-|-----------|-------|----------------|
-| The Foundation | 75 | Core algorithm patterns — arrays, trees, graphs, DP, the works |
-| System Design Lite | 15 | LRU caches, rate limiters, pub/sub, circuit breakers |
-| Concurrency | 10 | Producer-consumer, dining philosophers, deadlock detection |
-| Data Structures | 15 | Build it yourself — hash maps, heaps, AVL trees, no stdlib |
-| Bit Manipulation | 15 | The category everyone skips until the interview |
-| Recursion Deep Dive | 10 | Constraint satisfaction, pruning, advanced backtracking |
-| Real-World Patterns | 15 | JSON parsers, cron expressions, CLI arg parsing, diff algorithms |
-| Language Idiomatic | 10 | Same problem, fundamentally different solution per language |
-
-Plus 10 **mock interview sets** — curated triplets that simulate a 45-minute screen.
-
-## Configuration
-
-spar stores config in `~/.config/spar/config.yaml` and user data in `~/.local/share/spar/`. Created automatically on first run.
+## Config
 
 ```yaml
 # ~/.config/spar/config.yaml
 repo_path: ~/code/spar
 default_language: go
-ai_provider: claude          # claude | openai | none
+ai_provider: claude    # claude | openai | none
 editor_tab_width: 4
 ```
+
+User data (stats, session history) lives in `~/.local/share/spar/`. Both directories are created on first run.
 
 ## CLI
 
 ```
 spar                    Launch the TUI
-spar generate-index     Regenerate index.yaml from challenge tree
-spar validate           Validate all challenge folders
-spar validate <path>    Validate a specific challenge
+spar generate-index     Rebuild the challenge index
+spar validate           Check all challenge folders
+spar validate <path>    Check a specific challenge
 spar version            Print version
 ```
 
 ## Contributing
 
-Contributions are welcome — especially new challenges.
-
-### Adding a challenge
+New challenges are the most useful contribution. The process:
 
 1. Fork the repo
-2. Create `challenges/{category}/{your-challenge}/` with all required files
-3. Run `spar validate challenges/{category}/{your-challenge}` to check structure
-4. Run `spar generate-index` to update the manifest
+2. Create your challenge folder under `challenges/{category}/`
+3. Run `spar validate` to check the structure
+4. Run `spar generate-index` to update the index
 5. Open a PR
 
-CI validates everything: correct structure, all declared languages have setup and solution files, all solutions pass all tests. If CI is green, you're good.
+CI runs the full validation — structure, completeness, and it actually executes every solution against every test case. If it's green, you're good.
 
-### Challenge quality bar
-
-Every challenge needs original problem descriptions (not copied from other platforms), at least 2 visible and 3 hidden test cases covering edge cases, idiomatic solutions in all supported languages (not transliterated Python), and no comments in code files — the code speaks for itself.
-
-## Philosophy
-
-spar is built on a few beliefs:
-
-Coding skill comes from writing code, not reading solutions. The terminal is where developers actually work — meet them there. Copy-paste is the enemy of learning. AI should be an interviewer, not an answer key. Open source means free forever, not free-until-we-raise-a-Series-A.
+Challenges need original descriptions, at least 2 visible and 3 hidden test cases, and idiomatic solutions in all supported languages.
 
 ## License
 

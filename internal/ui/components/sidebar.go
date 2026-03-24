@@ -94,13 +94,11 @@ func (s Sidebar) View(width, height int, logo string, focused bool) string {
 	}
 
 	borderColor := theme.Border
-	if focused {
-		borderColor = theme.Red
-	}
+	_ = focused
 	borderStyle := lipgloss.NewStyle().Foreground(borderColor)
 	borderChar := borderStyle.Render("│")
 
-	itemWidth := width - 3
+	itemWidth := width - 4
 	if itemWidth < 6 {
 		itemWidth = 6
 	}
@@ -136,18 +134,22 @@ func (s Sidebar) View(width, height int, logo string, focused bool) string {
 		secondary,
 	}, "\n")
 
-	padWidth := width - 2
+	innerW := width - 4
+	if innerW < 4 {
+		innerW = 4
+	}
 	lines := strings.Split(content, "\n")
 	out := make([]string, 0, height)
 
-	out = append(out, strings.Repeat(" ", padWidth)+borderChar)
+	emptyLine := " " + strings.Repeat(" ", innerW) + "  " + borderChar
+	out = append(out, emptyLine)
 
 	for _, line := range lines {
-		rendered := " " + lipgloss.NewStyle().Width(padWidth-1).MaxWidth(padWidth-1).Inline(true).Render(line) + borderChar
+		rendered := " " + lipgloss.NewStyle().Width(innerW).MaxWidth(innerW).Inline(true).Render(line) + "  " + borderChar
 		out = append(out, rendered)
 	}
 
-	empty := strings.Repeat(" ", padWidth) + borderChar
+	empty := emptyLine
 	for len(out) < height {
 		out = append(out, empty)
 	}

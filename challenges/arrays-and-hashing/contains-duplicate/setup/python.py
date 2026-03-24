@@ -1,2 +1,2 @@
 def contains_duplicate(nums: list[int]) -> bool:
-    pass
+    return  len(nums) != len(set(nums))
