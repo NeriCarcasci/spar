@@ -5,10 +5,10 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/spar-cli/spar/internal/challenge"
-	"github.com/spar-cli/spar/internal/profile"
-	"github.com/spar-cli/spar/internal/ui/components"
-	"github.com/spar-cli/spar/internal/ui/theme"
+	"github.com/NeriCarcasci/spar/internal/challenge"
+	"github.com/NeriCarcasci/spar/internal/profile"
+	"github.com/NeriCarcasci/spar/internal/ui/components"
+	"github.com/NeriCarcasci/spar/internal/ui/theme"
 )
 
 type SelectChallengeMsg struct {

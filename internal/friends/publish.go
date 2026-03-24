@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/spar-cli/spar/internal/challenge"
-	"github.com/spar-cli/spar/internal/profile"
-	"github.com/spar-cli/spar/internal/rank"
+	"github.com/NeriCarcasci/spar/internal/challenge"
+	"github.com/NeriCarcasci/spar/internal/profile"
+	"github.com/NeriCarcasci/spar/internal/rank"
 )
 
 func BuildPublicProfile(p *profile.Profile, idx *challenge.Index, version string) PublicProfile {

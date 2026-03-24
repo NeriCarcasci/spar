@@ -2,7 +2,7 @@ package components
 
 import (
 	"github.com/charmbracelet/lipgloss"
-	"github.com/spar-cli/spar/internal/ui/theme"
+	"github.com/NeriCarcasci/spar/internal/ui/theme"
 )
 
 type Modal struct {

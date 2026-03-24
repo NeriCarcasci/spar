@@ -1,6 +1,6 @@
 package browser
 
-import "github.com/spar-cli/spar/internal/challenge"
+import "github.com/NeriCarcasci/spar/internal/challenge"
 
 type Filters struct {
 	Category     string

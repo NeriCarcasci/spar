@@ -10,14 +10,15 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/spar-cli/spar/internal/app"
-	"github.com/spar-cli/spar/internal/challenge"
-	"github.com/spar-cli/spar/internal/config"
-	"github.com/spar-cli/spar/internal/friends"
-	"github.com/spar-cli/spar/internal/generate"
-	"github.com/spar-cli/spar/internal/profile"
-	"github.com/spar-cli/spar/internal/rank"
-	"github.com/spar-cli/spar/internal/ui/theme"
+	"github.com/NeriCarcasci/spar/internal/app"
+	"github.com/NeriCarcasci/spar/internal/challenge"
+	"github.com/NeriCarcasci/spar/internal/cli"
+	"github.com/NeriCarcasci/spar/internal/config"
+	"github.com/NeriCarcasci/spar/internal/friends"
+	"github.com/NeriCarcasci/spar/internal/generate"
+	"github.com/NeriCarcasci/spar/internal/profile"
+	"github.com/NeriCarcasci/spar/internal/rank"
+	"github.com/NeriCarcasci/spar/internal/ui/theme"
 )
 
 var version = "dev"
@@ -33,6 +34,22 @@ func main() {
 			return
 		case "validate":
 			runValidate()
+			return
+		case "setup":
+			cli.RunSetup()
+			return
+		case "doctor":
+			cli.RunDoctor()
+			return
+		case "settings":
+			if len(os.Args) > 2 && os.Args[2] == "reset" {
+				cli.RunSettingsReset()
+			} else {
+				cli.RunSettings()
+			}
+			return
+		case "update":
+			cli.RunUpdate()
 			return
 		case "publish":
 			runPublish()
@@ -131,9 +148,11 @@ func printUsage() {
 	fmt.Println("  " + name.Render("spar") + " " + arg.Render("[command]"))
 	fmt.Println()
 	fmt.Println(desc.Render("Commands:"))
-	fmt.Println("  " + sub.Render("start") + "            " + desc.Render("Start a coding session"))
-	fmt.Println("  " + sub.Render("browse") + "           " + desc.Render("Browse challenges"))
-	fmt.Println("  " + sub.Render("stats") + "            " + desc.Render("View your profile and stats"))
+	fmt.Println("  " + sub.Render("setup") + "            " + desc.Render("Interactive first-run setup wizard"))
+	fmt.Println("  " + sub.Render("doctor") + "           " + desc.Render("Check AI configuration and connectivity"))
+	fmt.Println("  " + sub.Render("settings") + "         " + desc.Render("View and change settings"))
+	fmt.Println("  " + sub.Render("settings reset") + "   " + desc.Render("Delete all configuration and tokens"))
+	fmt.Println("  " + sub.Render("update") + "           " + desc.Render("Update spar to the latest version"))
 	fmt.Println("  " + sub.Render("publish") + "          " + desc.Render("Publish profile to GitHub"))
 	fmt.Println("  " + sub.Render("friend") + "           " + desc.Render("Manage friends (add/remove/list/sync)"))
 	fmt.Println("  " + sub.Render("validate") + "         " + desc.Render("Validate challenge structure"))

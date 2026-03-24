@@ -8,17 +8,17 @@ import (
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/spar-cli/spar/internal/challenge"
-	"github.com/spar-cli/spar/internal/config"
-	"github.com/spar-cli/spar/internal/friends"
-	"github.com/spar-cli/spar/internal/profile"
-	"github.com/spar-cli/spar/internal/rank"
-	"github.com/spar-cli/spar/internal/repo"
-	"github.com/spar-cli/spar/internal/ui/browser"
-	"github.com/spar-cli/spar/internal/ui/dashboard"
-	profileview "github.com/spar-cli/spar/internal/ui/profile"
-	"github.com/spar-cli/spar/internal/ui/session"
-	"github.com/spar-cli/spar/internal/ui/splash"
+	"github.com/NeriCarcasci/spar/internal/challenge"
+	"github.com/NeriCarcasci/spar/internal/config"
+	"github.com/NeriCarcasci/spar/internal/friends"
+	"github.com/NeriCarcasci/spar/internal/profile"
+	"github.com/NeriCarcasci/spar/internal/rank"
+	"github.com/NeriCarcasci/spar/internal/repo"
+	"github.com/NeriCarcasci/spar/internal/ui/browser"
+	"github.com/NeriCarcasci/spar/internal/ui/dashboard"
+	profileview "github.com/NeriCarcasci/spar/internal/ui/profile"
+	"github.com/NeriCarcasci/spar/internal/ui/session"
+	"github.com/NeriCarcasci/spar/internal/ui/splash"
 )
 
 type View int

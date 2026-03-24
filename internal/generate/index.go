@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/spar-cli/spar/internal/challenge"
+	"github.com/NeriCarcasci/spar/internal/challenge"
 	"gopkg.in/yaml.v3"
 )
 

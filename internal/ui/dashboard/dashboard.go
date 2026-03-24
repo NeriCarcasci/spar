@@ -9,14 +9,14 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/spar-cli/spar/internal/challenge"
-	"github.com/spar-cli/spar/internal/config"
-	"github.com/spar-cli/spar/internal/friends"
-	"github.com/spar-cli/spar/internal/profile"
-	"github.com/spar-cli/spar/internal/rank"
-	"github.com/spar-cli/spar/internal/ui/components"
-	"github.com/spar-cli/spar/internal/ui/leaderboard"
-	"github.com/spar-cli/spar/internal/ui/theme"
+	"github.com/NeriCarcasci/spar/internal/challenge"
+	"github.com/NeriCarcasci/spar/internal/config"
+	"github.com/NeriCarcasci/spar/internal/friends"
+	"github.com/NeriCarcasci/spar/internal/profile"
+	"github.com/NeriCarcasci/spar/internal/rank"
+	"github.com/NeriCarcasci/spar/internal/ui/components"
+	"github.com/NeriCarcasci/spar/internal/ui/leaderboard"
+	"github.com/NeriCarcasci/spar/internal/ui/theme"
 )
 
 const (

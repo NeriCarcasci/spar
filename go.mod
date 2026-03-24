@@ -1,4 +1,4 @@
-module github.com/spar-cli/spar
+module github.com/NeriCarcasci/spar
 
 go 1.25.4
 
