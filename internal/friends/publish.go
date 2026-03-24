@@ -126,7 +126,7 @@ func ProfileBranchExists(repoPath string, remoteName string) (bool, error) {
 func publishNewBranch(ctx context.Context, repoPath, remoteName, tmpDir, profilePath string) error {
 	wtPath := filepath.Join(tmpDir, "worktree")
 
-	if err := gitCmd(ctx, repoPath, "worktree", "add", "--orphan", wtPath, "profile"); err != nil {
+	if err := gitCmd(ctx, repoPath, "worktree", "add", "--orphan", "-b", "profile", wtPath); err != nil {
 		return fmt.Errorf("creating worktree: %w", err)
 	}
 	defer gitCmd(context.Background(), repoPath, "worktree", "remove", "--force", wtPath)

@@ -1,2 +1,5 @@
+from collections import Counter
+
+
 def is_anagram(s: str, t: str) -> bool:
-    pass
+    return Counter(s) == Counter(t)
