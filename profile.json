@@ -1,0 +1,29 @@
+{
+  "username": "Neri Carcasci",
+  "rank": "Spark",
+  "division": 1,
+  "total_sp": 93,
+  "streak": 1,
+  "solves": {
+    "easy": 4,
+    "hard": 0,
+    "medium": 0
+  },
+  "total_solved": 4,
+  "total_challenges": 64,
+  "languages": {
+    "python": 4
+  },
+  "track_medals": {
+    "bit_manipulation": "none",
+    "concurrency": "none",
+    "data_structures": "none",
+    "foundation": "none",
+    "language_idiomatic": "none",
+    "real_world_patterns": "none",
+    "recursion_deep_dive": "none",
+    "system_design_lite": "none"
+  },
+  "last_updated": "2026-03-24T20:51:56.7017883Z",
+  "spar_version": "dev"
+}
